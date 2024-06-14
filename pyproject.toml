@@ -1,0 +1,68 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[project]
+authors = [
+  {name = "Jérome Eertmans", email = "jeertmans@icloud.com"},
+]
+dependencies = [
+  "vispy>=0.14.2",
+  "sionna>=0.18.0",
+]
+description = "VisPy scene previewer for Sionna"
+name = "sionna-vispy"
+readme = "README.md"
+requires-python = ">= 3.8"
+version = "0.1.0"
+
+[project.optional-dependencies]
+recommended = [
+  "pyglet>=2.0.15",
+  "jupyter-rfb>=0.4.4",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sionna_vispy"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.pyright]
+include = ["src/sionna_vispy"]
+venv = ".venv"
+venvPath = "."
+
+[tool.ruff]
+extend-include = ["*.ipynb"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+extend-ignore = [
+  "D203",  # no-blank-line-before-class
+  "D212",  # multi-line-summary-second-line
+  "D407",  # Missing dashed underline after section
+  "F722",  # Syntax error in forward annotation
+]
+extend-select = ["B", "C90", "D", "I", "N", "RUF", "UP", "T"]
+isort = {known-first-party = ["differt", "differt_core", "tests"]}
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["equinox.field"]
+
+[tool.ruff.lint.pep8-naming]
+extend-ignore-names = ["T"]
+
+[tool.ruff.lint.per-file-ignores]
+"**.ipynb" = ["B018"]
+"**/{docs,differt_dev,tests}/*" = ["D"]
+"differt/src/differt/conftest.py" = ["D"]
+
+[tool.rye]
+dev-dependencies = [
+  "manim-slides[recommended]",
+  "pytest>=8.2.2",
+]
+managed = true
