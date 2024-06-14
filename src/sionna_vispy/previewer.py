@@ -18,10 +18,17 @@ import matplotlib
 import mitsuba as mi
 import numpy as np
 import pythreejs as p3s
+from sionna.rt.renderer import coverage_map_color_mapping
+from sionna.rt.utils import (
+    mitsuba_rectangle_to_world,
+    paths_to_segments,
+    rotate,
+    scene_scale,
+)
 from vispy.scene import SceneCanvas
-
-from .renderer import coverage_map_color_mapping
-from .utils import mitsuba_rectangle_to_world, paths_to_segments, rotate, scene_scale
+from vispy.scene.cameras.perspective import PerspectiveCamera
+from vispy.scene.visuals import Image
+from vispy.visuals.transforms import STTransform
 
 if TYPE_CHECKING:
     from sionna.rt.scene import Scene
@@ -48,6 +55,7 @@ class InteractiveDisplay(SceneCanvas):
     ) -> None:
         super().__init__(keys="interactive", size=resolution, bgcolor=background)
 
+        self._resolution = resolution
         self._scene = scene
         self._disk_sprite = None
 
@@ -61,31 +69,18 @@ class InteractiveDisplay(SceneCanvas):
         ####################################################
 
         # Lighting
-        ambient_light = p3s.AmbientLight(intensity=0.80)
-        camera_light = p3s.DirectionalLight(position=[0, 0, 0], intensity=0.25)
+        #ambient_light = p3s.AmbientLight(intensity=0.80)
+        #camera_light = p3s.DirectionalLight(position=[0, 0, 0], intensity=0.25)
 
         # Camera & controls
-        self._camera = p3s.PerspectiveCamera(
+        self._camera = PerspectiveCamera(
             fov=fov,
             aspect=resolution[0] / resolution[1],
-            up=[0, 0, 1],
-            far=10000,
-            children=[camera_light],
+            center=[0, 0, 0],
+            #far=10000,
+            #children=[camera_light],
         )
-        self._orbit = p3s.OrbitControls(controlling=self._camera)
-
-        # Scene & renderer
-        self._p3s_scene = p3s.Scene(
-            background=background, children=[self._camera, ambient_light]
-        )
-        self._renderer = p3s.Renderer(
-            scene=self._p3s_scene,
-            camera=self._camera,
-            controls=[self._orbit],
-            width=resolution[0],
-            height=resolution[1],
-            antialias=True,
-        )
+        #self._orbit = p3s.OrbitControls(controlling=self._camera)
 
         ####################################################
         # Plot the scene geometry
@@ -134,11 +129,9 @@ class InteractiveDisplay(SceneCanvas):
         corner = [bbox.min.x, center.y, 1.5 * bbox.max.z]
         if np.allclose(corner, 0):
             corner = (-1, -1, 1)
-        self._camera.position = tuple(corner)
+        self._camera.center = tuple(corner)
 
-        self._camera.lookAt(center)
-        self._orbit.exec_three_obj_method("update")
-        self._camera.exec_three_obj_method("updateProjectionMatrix")
+        # self._camera.lookAt(center)
 
     def plot_radio_devices(self, show_orientations=False):
         """
@@ -301,14 +294,6 @@ class InteractiveDisplay(SceneCanvas):
 
         vertex_uvs = np.array([[0, 0], [1, 0], [0, 1], [1, 1]], dtype=np.float32)
 
-        geo = p3s.BufferGeometry(
-            attributes={
-                "position": p3s.BufferAttribute(vertices, normalized=False),
-                "index": p3s.BufferAttribute(faces.ravel(), normalized=False),
-                "uv": p3s.BufferAttribute(vertex_uvs, normalized=False),
-            }
-        )
-
         to_map, normalizer, color_map = coverage_map_color_mapping(
             coverage_map, db_scale=db_scale, vmin=vmin, vmax=vmax
         )
@@ -317,22 +302,22 @@ class InteractiveDisplay(SceneCanvas):
         # Pre-multiply alpha
         texture[:, :, :3] *= texture[:, :, 3, None]
 
-        texture = p3s.DataTexture(
-            data=(255.0 * texture).astype(np.uint8),
-            format="RGBAFormat",
-            type="UnsignedByteType",
-            magFilter="NearestFilter",
-            minFilter="NearestFilter",
+        m, n, _ = texture.shape
+
+        xscale = abs(pmax[0] - pmin[0]) / m
+        yscale = abs(pmax[1] - pmin[1]) / m
+        xshift = pmin[0]
+        yshift = pmin[1]
+        zshift = 0.0
+
+        transform = STTransform(
+        scale=(xscale, yscale),
+        translate=(xshift, yshift, zshift),
         )
 
-        mat = p3s.MeshLambertMaterial(
-            side="DoubleSide",
-            map=texture,
-            transparent=True,
-        )
-        mesh = p3s.Mesh(geo, mat)
+        image = Image(data=(255.0 * texture).astype(np.uint8), interpolation="nearest", texture_format="auto", transform=transform)
 
-        self._add_child(mesh, pmin, pmax, persist=False)
+        self._add_child(image, pmin, pmax, persist=False)
 
     def plot_ris(self):
         """
@@ -401,22 +386,22 @@ class InteractiveDisplay(SceneCanvas):
     @property
     def camera(self):
         """
-        pthreejs.PerspectiveCamera : Get the camera
+        vispy.scene.cameras.perspective.PerspectiveCamera : Get the camera
         """
         return self._camera
 
     @property
     def orbit(self):
         """
-        pthreejs.OrbitControls : Get the orbit
+        None : Get the orbit
         """
-        return self._orbit
+        raise AttributeError("VisPy has not orbit")
 
     def resolution(self):
         """
         Returns a tuple (width, height) with the rendering resolution.
         """
-        return (self._renderer.width, self._renderer.height)
+        return self._resolution
 
     ##################################################
     # Internal methods

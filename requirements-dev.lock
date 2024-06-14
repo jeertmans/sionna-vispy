@@ -6,21 +6,31 @@
 #   features: []
 #   all-features: false
 #   with-sources: false
+#   generate-hashes: false
 
 -e file:.
 absl-py==2.1.0
     # via tensorboard
     # via tensorflow
+annotated-types==0.7.0
+    # via pydantic
 asttokens==2.4.1
     # via stack-data
 astunparse==1.6.3
     # via tensorflow
+av==12.1.0
+    # via manim-slides
 cachetools==5.3.3
     # via google-auth
 certifi==2024.6.2
     # via requests
 charset-normalizer==3.3.2
     # via requests
+click==8.1.7
+    # via click-default-group
+    # via manim-slides
+click-default-group==1.2.4
+    # via manim-slides
 contourpy==1.2.1
     # via matplotlib
 cycler==0.12.1
@@ -70,6 +80,8 @@ ipywidgets==8.0.5
     # via sionna
 jedi==0.19.1
     # via ipython
+jinja2==3.1.4
+    # via manim-slides
 jupyterlab-widgets==3.0.5
     # via ipywidgets
     # via sionna
@@ -80,14 +92,23 @@ kiwisolver==1.4.5
     # via vispy
 libclang==18.1.1
     # via tensorflow
+lxml==5.2.2
+    # via manim-slides
+    # via python-pptx
+manim-slides==5.1.7
 markdown==3.6
     # via tensorboard
+markdown-it-py==3.0.0
+    # via rich
 markupsafe==2.1.5
+    # via jinja2
     # via werkzeug
 matplotlib==3.9.0
     # via sionna
 matplotlib-inline==0.1.7
     # via ipython
+mdurl==0.1.2
+    # via markdown-it-py
 mitsuba==3.5.2
     # via sionna
 ml-dtypes==0.3.2
@@ -96,6 +117,7 @@ numpy==1.26.4
     # via contourpy
     # via h5py
     # via ipydatawidgets
+    # via manim-slides
     # via matplotlib
     # via ml-dtypes
     # via opt-einsum
@@ -112,6 +134,7 @@ opt-einsum==3.3.0
 packaging==24.1
     # via matplotlib
     # via pytest
+    # via qtpy
     # via tensorflow
     # via vispy
 parso==0.8.4
@@ -119,7 +142,9 @@ parso==0.8.4
 pexpect==4.9.0
     # via ipython
 pillow==10.3.0
+    # via manim-slides
     # via matplotlib
+    # via python-pptx
 pluggy==1.5.0
     # via pytest
 prompt-toolkit==3.0.47
@@ -136,22 +161,39 @@ pyasn1==0.6.0
     # via rsa
 pyasn1-modules==0.4.0
     # via google-auth
+pydantic==2.7.4
+    # via manim-slides
+    # via pydantic-extra-types
+pydantic-core==2.18.4
+    # via pydantic
+pydantic-extra-types==2.8.1
+    # via manim-slides
 pygments==2.18.0
     # via ipython
+    # via rich
 pyparsing==3.1.2
     # via matplotlib
 pytest==8.2.2
 python-dateutil==2.9.0.post0
     # via matplotlib
+python-pptx==0.6.23
+    # via manim-slides
 pythreejs==2.4.2
     # via sionna
+qtpy==2.4.1
+    # via manim-slides
 requests==2.32.3
+    # via manim-slides
     # via requests-oauthlib
     # via tensorboard
 requests-oauthlib==2.0.0
     # via google-auth-oauthlib
+rich==13.7.1
+    # via manim-slides
 rsa==4.9
     # via google-auth
+rtoml==0.10.0
+    # via manim-slides
 scipy==1.13.1
     # via sionna
 setuptools==70.0.0
@@ -180,6 +222,8 @@ tensorflow-io-gcs-filesystem==0.37.0
     # via tensorflow
 termcolor==2.4.0
     # via tensorflow
+tqdm==4.66.4
+    # via manim-slides
 traitlets==5.14.3
     # via ipython
     # via ipywidgets
@@ -190,6 +234,8 @@ traittypes==0.2.1
     # via ipydatawidgets
 typing-extensions==4.12.2
     # via ipython
+    # via pydantic
+    # via pydantic-core
     # via tensorflow
 urllib3==2.2.1
     # via requests
@@ -205,3 +251,5 @@ widgetsnbextension==4.0.11
     # via ipywidgets
 wrapt==1.14.1
     # via tensorflow
+xlsxwriter==3.2.0
+    # via python-pptx
