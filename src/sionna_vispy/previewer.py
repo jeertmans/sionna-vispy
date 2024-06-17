@@ -453,7 +453,7 @@ class InteractiveDisplay(SceneCanvas):
 
         markers = Markers(
             pos=points,
-            size=2 * radius,
+            size=10 * radius,
             face_color=colors,
             alpha=0.5,  # type: ignore[reportArgumentType]
         )

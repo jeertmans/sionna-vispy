@@ -14,9 +14,6 @@ scene.add(tx)
 rx = Receiver("rx", position=[22, 52, 1.7])
 scene.add(rx)
 
-tx.look_at(rx)
-rx.look_at(tx)
-
 # Place RIS
 ris = RIS(
     name="ris",
@@ -32,7 +29,7 @@ ris.phase_gradient_reflector(tx.position, rx.position)
 
 
 paths = scene.compute_paths(
-    num_samples=20e6,
+    num_samples=20e4,
     max_depth=5,
     los=True,
     reflection=True,
@@ -42,7 +39,7 @@ paths = scene.compute_paths(
 
 
 cm = scene.coverage_map(
-    num_samples=20e6,
+    num_samples=20e4,
     max_depth=5,
     los=True,
     reflection=True,
