@@ -139,7 +139,6 @@ platformdirs==4.2.2
     # via virtualenv
 pluggy==1.5.0
     # via pytest
-    # via pytest-qt
 pre-commit==3.7.1
 prompt-toolkit==3.0.47
     # via ipython
@@ -167,8 +166,6 @@ pyside6-essentials==6.7.1
     # via pyside6
     # via pyside6-addons
 pytest==8.2.2
-    # via pytest-qt
-pytest-qt==4.4.0
 python-dateutil==2.9.0.post0
     # via matplotlib
 pythreejs==2.4.2

@@ -32,3 +32,8 @@ repos:
   - id: codespell
     additional_dependencies:
     - tomli
+- repo: https://github.com/tcort/markdown-link-check
+  rev: v3.12.2
+  hooks:
+  - id: markdown-link-check
+    args: [-q]

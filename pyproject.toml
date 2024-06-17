@@ -50,17 +50,14 @@ isort = {known-first-party = ["sionna_vispy", "tests"]}
 extend-ignore-names = ["T"]
 
 [tool.ruff.lint.per-file-ignores]
-"**.ipynb" = ["B018"]
-"**/{docs,differt_dev,tests}/*" = ["D"]
-"differt/src/differt/conftest.py" = ["D"]
+"**/tests/*" = ["D"]
 
 [tool.rye]
 dev-dependencies = [
-    # Dev
-    "pre-commit>=3.7.1",
-    # Testing
-    "pytest>=8.2.2",
-    "pytest-qt>=4.4.0",
-    "pyside6>=6.0.0",
+  # Dev
+  "pre-commit>=3.7.1",
+  # Testing
+  "pytest>=8.2.2",
+  "pyside6>=6.0.0",
 ]
 managed = true

@@ -16,7 +16,6 @@ import matplotlib
 import mitsuba as mi
 import numpy as np
 import pythreejs as p3s
-import vispy.util.transforms as tsf
 from sionna.rt.renderer import coverage_map_color_mapping
 from sionna.rt.utils import (
     mitsuba_rectangle_to_world,
@@ -188,16 +187,16 @@ class InteractiveDisplay(SceneCanvas):
                         rows=80,
                         cols=80,
                         radius=(30 * head_length, 0),
-                        length=100*head_length,
+                        length=100 * head_length,
                     )
                     angles = rd.orientation.numpy()
                     mesh = Mesh(color=color, meshdata=meshdata)
                     mesh.transform = MatrixTransform()
-                    mesh.transform.rotate(np.rad2deg(+angles[0] - np.pi / 2), (0, 0, 1))
-                    mesh.transform.rotate(np.rad2deg(+angles[2]), (0, 1, 0))
-                    mesh.transform.rotate(np.rad2deg(-angles[1]), (1, 0, 0))
-                    mesh.transform.translate(np.append(endpoint, 1))
-
+                    print(f"{np.rad2deg(angles) = }")
+                    mesh.transform.rotate(np.rad2deg(angles[0]), (0, 0, 1))
+                    mesh.transform.rotate(np.rad2deg(angles[2] + np.pi / 2), (0, 1, 0))
+                    mesh.transform.rotate(np.rad2deg(angles[1]), (1, 0, 0))
+                    mesh.transform.translate(np.append(endpoint.numpy(), 1))
 
                     # geo = p3s.CylinderGeometry(
                     #     radiusTop=0,
@@ -216,7 +215,7 @@ class InteractiveDisplay(SceneCanvas):
                     # mesh.rotateX(-angles[1])
                     self._add_child(mesh, zeros, zeros, persist=False)
 
-                #self._plot_lines(np.array(starts), np.array(ends), width=2, color=color)
+                self._plot_lines(np.array(starts), np.array(ends), width=2, color=color)
 
     def plot_paths(self, paths):
         """
@@ -538,7 +537,9 @@ class InteractiveDisplay(SceneCanvas):
         pmin = np.min(segments, axis=(0, 1))
         pmax = np.max(segments, axis=(0, 1))
 
-        line_plot = LinePlot(data=segments.reshape(-1, 3), color=color, width=width)
+        line_plot = LinePlot(
+            data=segments.reshape(-1, 3), color=color, width=width, marker_size=0
+        )
 
         # Lines are not flagged as persistent as they correspond to paths, which
         # can changes from one display to the next.

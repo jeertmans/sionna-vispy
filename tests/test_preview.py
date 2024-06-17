@@ -1,6 +1,5 @@
 import pytest
 import sionna
-#from pytest_qt import QtBot
 from sionna.rt import RIS, PlanarArray, Receiver, Transmitter, load_scene
 from sionna.rt.coverage_map import CoverageMap
 from sionna.rt.paths import Paths
@@ -108,12 +107,9 @@ def coverage_map(
     )
 
 
-def test_preview(
-    qtbot, scene: Scene, paths: Paths, coverage_map: CoverageMap
-) -> None:
+def test_preview(scene: Scene, paths: Paths, coverage_map: CoverageMap) -> None:
     with sionna_vispy.patch():
         canvas = scene.preview(
             paths=paths, coverage_map=coverage_map, show_orientations=True
         )
         assert isinstance(canvas, SceneCanvas)
-        qtbot.add(canvas)
