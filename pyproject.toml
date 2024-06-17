@@ -7,8 +7,8 @@ authors = [
   {name = "Jérome Eertmans", email = "jeertmans@icloud.com"},
 ]
 dependencies = [
-  "vispy>=0.14.2",
   "sionna>=0.18.0",
+  "vispy>=0.14.2",
 ]
 description = "VisPy scene previewer for Sionna"
 name = "sionna-vispy"
@@ -18,8 +18,8 @@ version = "0.1.0"
 
 [project.optional-dependencies]
 recommended = [
-  "pyglet>=2.0.15",
   "jupyter-rfb>=0.4.4",
+  "pyside6>=6.0.0",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -33,9 +33,6 @@ include = ["src/sionna_vispy"]
 venv = ".venv"
 venvPath = "."
 
-[tool.ruff]
-extend-include = ["*.ipynb"]
-
 [tool.ruff.format]
 docstring-code-format = true
 
@@ -47,10 +44,7 @@ extend-ignore = [
   "F722",  # Syntax error in forward annotation
 ]
 extend-select = ["B", "C90", "D", "I", "N", "RUF", "UP", "T"]
-isort = {known-first-party = ["differt", "differt_core", "tests"]}
-
-[tool.ruff.lint.flake8-bugbear]
-extend-immutable-calls = ["equinox.field"]
+isort = {known-first-party = ["sionna_vispy", "tests"]}
 
 [tool.ruff.lint.pep8-naming]
 extend-ignore-names = ["T"]
@@ -62,7 +56,11 @@ extend-ignore-names = ["T"]
 
 [tool.rye]
 dev-dependencies = [
-  "manim-slides[recommended]",
-  "pytest>=8.2.2",
+    # Dev
+    "pre-commit>=3.7.1",
+    # Testing
+    "pytest>=8.2.2",
+    "pytest-qt>=4.4.0",
+    "pyside6>=6.0.0",
 ]
 managed = true

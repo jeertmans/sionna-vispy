@@ -4,9 +4,8 @@
 # last locked with the following flags:
 #   pre: false
 #   features: []
-#   all-features: false
+#   all-features: true
 #   with-sources: false
-#   generate-hashes: false
 
 -e file:.
 absl-py==2.1.0
@@ -65,12 +64,16 @@ ipython==8.25.0
     # via ipywidgets
 ipywidgets==8.0.5
     # via ipydatawidgets
+    # via jupyter-rfb
     # via pythreejs
     # via sionna
 jedi==0.19.1
     # via ipython
+jupyter-rfb==0.4.4
+    # via sionna-vispy
 jupyterlab-widgets==3.0.5
     # via ipywidgets
+    # via jupyter-rfb
     # via sionna
 keras==2.15.0
     # via tensorflow
@@ -95,6 +98,7 @@ numpy==1.26.4
     # via contourpy
     # via h5py
     # via ipydatawidgets
+    # via jupyter-rfb
     # via matplotlib
     # via ml-dtypes
     # via opt-einsum
@@ -136,6 +140,13 @@ pygments==2.18.0
     # via ipython
 pyparsing==3.1.2
     # via matplotlib
+pyside6==6.7.1
+    # via sionna-vispy
+pyside6-addons==6.7.1
+    # via pyside6
+pyside6-essentials==6.7.1
+    # via pyside6
+    # via pyside6-addons
 python-dateutil==2.9.0.post0
     # via matplotlib
 pythreejs==2.4.2
@@ -152,6 +163,10 @@ scipy==1.13.1
 setuptools==70.0.0
     # via tensorboard
     # via tensorflow
+shiboken6==6.7.1
+    # via pyside6
+    # via pyside6-addons
+    # via pyside6-essentials
 sionna==0.18.0
     # via sionna-vispy
 six==1.16.0

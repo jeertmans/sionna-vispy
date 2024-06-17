@@ -11,13 +11,12 @@ VisPy as a viewer rather than pythreejs.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import drjit as dr
 import matplotlib
 import mitsuba as mi
 import numpy as np
 import pythreejs as p3s
+import vispy.util.transforms as tsf
 from sionna.rt.renderer import coverage_map_color_mapping
 from sionna.rt.utils import (
     mitsuba_rectangle_to_world,
@@ -25,13 +24,10 @@ from sionna.rt.utils import (
     rotate,
     scene_scale,
 )
+from vispy.geometry.generation import create_cylinder
 from vispy.scene import SceneCanvas
-from vispy.scene.cameras.perspective import PerspectiveCamera
-from vispy.scene.visuals import Image
-from vispy.visuals.transforms import STTransform
-
-if TYPE_CHECKING:
-    from sionna.rt.scene import Scene
+from vispy.scene.visuals import Image, LinePlot, Markers, Mesh
+from vispy.visuals.transforms import MatrixTransform, STTransform
 
 
 class InteractiveDisplay(SceneCanvas):
@@ -50,14 +46,14 @@ class InteractiveDisplay(SceneCanvas):
         Background color in hex format prefixed by '#'.
     """
 
-    def __init__(
-        self, scene: Scene, resolution: tuple[float, float], fov: float, background: str
-    ) -> None:
+    def __init__(self, scene, resolution, fov, background) -> None:
         super().__init__(keys="interactive", size=resolution, bgcolor=background)
+        print("Patched version")
+
+        self.unfreeze()
 
         self._resolution = resolution
-        self._scene = scene
-        self._disk_sprite = None
+        self._sionna_scene = scene  # self._scene is already defined by VisPy
 
         # List of objects in the scene
         self._objects = []
@@ -68,19 +64,24 @@ class InteractiveDisplay(SceneCanvas):
         # Setup the viewer
         ####################################################
 
-        # Lighting
-        #ambient_light = p3s.AmbientLight(intensity=0.80)
-        #camera_light = p3s.DirectionalLight(position=[0, 0, 0], intensity=0.25)
+        # View
+        self._view = self.central_widget.add_view()
 
-        # Camera & controls
-        self._camera = PerspectiveCamera(
-            fov=fov,
-            aspect=resolution[0] / resolution[1],
-            center=[0, 0, 0],
-            #far=10000,
-            #children=[camera_light],
-        )
-        #self._orbit = p3s.OrbitControls(controlling=self._camera)
+        self._view.camera = "turntable"
+        # self._view.camera.transform.translate((+100, 100, 100))
+        # self._view.camera.depth_value = 1e3
+
+        self._camera = self._view.camera
+
+        # Camera
+        # self._camera = PerspectiveCamera(
+        #     fov=fov,
+        #     scale_factor=1000,
+        #     center=[0, 0, 0],
+        # )
+        # self._view.camera = self._camera
+
+        self.freeze()
 
         ####################################################
         # Plot the scene geometry
@@ -129,8 +130,9 @@ class InteractiveDisplay(SceneCanvas):
         corner = [bbox.min.x, center.y, 1.5 * bbox.max.z]
         if np.allclose(corner, 0):
             corner = (-1, -1, 1)
-        self._camera.center = tuple(corner)
+        # self._camera.center = tuple(corner)
 
+        self._view.camera.set_range()
         # self._camera.lookAt(center)
 
     def plot_radio_devices(self, show_orientations=False):
@@ -143,7 +145,7 @@ class InteractiveDisplay(SceneCanvas):
             Shows the radio devices' orientations.
             Defaults to `False`.
         """
-        scene = self._scene
+        scene = self._sionna_scene
         sc, tx_positions, rx_positions, _, _ = scene_scale(scene)
         transmitter_colors = [
             transmitter.color.numpy() for transmitter in scene.transmitters.values()
@@ -175,31 +177,46 @@ class InteractiveDisplay(SceneCanvas):
                 starts, ends = [], []
                 for rd in devices:
                     # Arrow line
-                    color = f'rgb({", ".join([str(int(v)) for v in rd.color])})'
+                    color = rd.color
                     starts.append(rd.position)
                     endpoint = rd.position + rotate(
                         [line_length, 0.0, 0.0], rd.orientation
                     )
                     ends.append(endpoint)
 
-                    geo = p3s.CylinderGeometry(
-                        radiusTop=0,
-                        radiusBottom=0.3 * head_length,
-                        height=head_length,
-                        radialSegments=8,
-                        heightSegments=0,
-                        openEnded=False,
+                    meshdata = create_cylinder(
+                        rows=80,
+                        cols=80,
+                        radius=(30 * head_length, 0),
+                        length=100*head_length,
                     )
-                    mat = p3s.MeshLambertMaterial(color=color)
-                    mesh = p3s.Mesh(geo, mat)
-                    mesh.position = tuple(endpoint)
                     angles = rd.orientation.numpy()
-                    mesh.rotateZ(angles[0] - np.pi / 2)
-                    mesh.rotateY(angles[2])
-                    mesh.rotateX(-angles[1])
+                    mesh = Mesh(color=color, meshdata=meshdata)
+                    mesh.transform = MatrixTransform()
+                    mesh.transform.rotate(np.rad2deg(+angles[0] - np.pi / 2), (0, 0, 1))
+                    mesh.transform.rotate(np.rad2deg(+angles[2]), (0, 1, 0))
+                    mesh.transform.rotate(np.rad2deg(-angles[1]), (1, 0, 0))
+                    mesh.transform.translate(np.append(endpoint, 1))
+
+
+                    # geo = p3s.CylinderGeometry(
+                    #     radiusTop=0,
+                    #     radiusBottom=0.3 * head_length,
+                    #     height=head_length,
+                    #     radialSegments=8,
+                    #     heightSegments=0,
+                    #     openEnded=False,
+                    # )
+                    # mat = p3s.MeshLambertMaterial(color=color)
+                    # mesh = p3s.Mesh(geo, mat)
+                    # mesh.position = tuple(endpoint)
+                    # angles = rd.orientation.numpy()
+                    # mesh.rotateZ(angles[0] - np.pi / 2)
+                    # mesh.rotateY(angles[2])
+                    # mesh.rotateX(-angles[1])
                     self._add_child(mesh, zeros, zeros, persist=False)
 
-                self._plot_lines(np.array(starts), np.array(ends), width=2, color=color)
+                #self._plot_lines(np.array(starts), np.array(ends), width=2, color=color)
 
     def plot_paths(self, paths):
         """
@@ -218,7 +235,7 @@ class InteractiveDisplay(SceneCanvas):
         """
         Plots the meshes that make the scene.
         """
-        shapes = self._scene.mi_scene.shapes()
+        shapes = self._sionna_scene.mi_scene.shapes()
         n = len(shapes)
         if n <= 0:
             return
@@ -284,16 +301,6 @@ class InteractiveDisplay(SceneCanvas):
         pmin = np.min(vertices, axis=0)
         pmax = np.max(vertices, axis=0)
 
-        faces = np.array(
-            [
-                [0, 1, 2],
-                [2, 1, 3],
-            ],
-            dtype=np.uint32,
-        )
-
-        vertex_uvs = np.array([[0, 0], [1, 0], [0, 1], [1, 1]], dtype=np.float32)
-
         to_map, normalizer, color_map = coverage_map_color_mapping(
             coverage_map, db_scale=db_scale, vmin=vmin, vmax=vmax
         )
@@ -302,20 +309,21 @@ class InteractiveDisplay(SceneCanvas):
         # Pre-multiply alpha
         texture[:, :, :3] *= texture[:, :, 3, None]
 
-        m, n, _ = texture.shape
+        n, m = texture.shape[:2]
 
         xscale = abs(pmax[0] - pmin[0]) / m
-        yscale = abs(pmax[1] - pmin[1]) / m
+        yscale = abs(pmax[1] - pmin[1]) / n
         xshift = pmin[0]
         yshift = pmin[1]
-        zshift = 0.0
+        zshift = (pmin[2] + pmax[2]) / 2
 
         transform = STTransform(
-        scale=(xscale, yscale),
-        translate=(xshift, yshift, zshift),
+            scale=(xscale, yscale),
+            translate=(xshift, yshift, zshift),
         )
 
-        image = Image(data=(255.0 * texture).astype(np.uint8), interpolation="nearest", texture_format="auto", transform=transform)
+        image = Image(data=(255.0 * texture).astype(np.uint8))
+        image.transform = transform
 
         self._add_child(image, pmin, pmax, persist=False)
 
@@ -323,7 +331,7 @@ class InteractiveDisplay(SceneCanvas):
         """
         Plot all RIS as a monochromatic rectangle in the scene
         """
-        all_ris = list(self._scene.ris.values())
+        all_ris = list(self._sionna_scene.ris.values())
 
         for ris in all_ris:
             orientation = ris.orientation
@@ -350,16 +358,7 @@ class InteractiveDisplay(SceneCanvas):
                 dtype=np.uint32,
             )
 
-            geo = p3s.BufferGeometry(
-                attributes={
-                    "position": p3s.BufferAttribute(vertices, normalized=False),
-                    "index": p3s.BufferAttribute(faces.ravel(), normalized=False),
-                }
-            )
-
-            color = f'rgb({", ".join([str(int(v*255)) for v in color])})'
-            mat = p3s.MeshLambertMaterial(color=color, side="DoubleSide")
-            mesh = p3s.Mesh(geo, mat)
+            mesh = Mesh(vertices=vertices, faces=faces, color=color)
 
             self._add_child(mesh, pmin, pmax, persist=False)
 
@@ -376,6 +375,7 @@ class InteractiveDisplay(SceneCanvas):
         clip_plane_orientation : tuple[float, float, float]
             Normal vector of the clipping plane.
         """
+        return  # TODO
         if offset is None:
             self._renderer.localClippingEnabled = False
             self._renderer.clippingPlanes = []
@@ -446,22 +446,9 @@ class InteractiveDisplay(SceneCanvas):
         # Closer match to Mitsuba and Blender
         colors = np.power(colors, 1 / 1.8)
 
-        geo = p3s.BufferGeometry(
-            attributes={
-                "index": p3s.BufferAttribute(faces.ravel(), normalized=False),
-                "position": p3s.BufferAttribute(vertices, normalized=False),
-                "color": p3s.BufferAttribute(colors, normalized=False),
-            }
+        mesh = Mesh(
+            vertices=vertices, faces=faces, vertex_colors=colors, shading="flat"
         )
-
-        mat = p3s.MeshStandardMaterial(
-            side="DoubleSide",
-            metalness=0.0,
-            roughness=1.0,
-            vertexColors="VertexColors",
-            flatShading=True,
-        )
-        mesh = p3s.Mesh(geo, mat)
         self._add_child(mesh, pmin, pmax, persist=persist)
 
     def _plot_points(self, points, persist, colors=None, radius=0.05):
@@ -495,27 +482,8 @@ class InteractiveDisplay(SceneCanvas):
         colors = colors.astype(np.float32)
         assert (colors.ndim == 2) and (colors.shape[1] == 3) and (colors.shape[0] == n)
 
-        tex = p3s.DataTexture(
-            data=self._get_disk_sprite(), format="RGBAFormat", type="FloatType"
-        )
-
-        points = points.astype(np.float32)
-        geo = p3s.BufferGeometry(
-            attributes={
-                "position": p3s.BufferAttribute(points, normalized=False),
-                "color": p3s.BufferAttribute(colors, normalized=False),
-            }
-        )
-        mat = p3s.PointsMaterial(
-            size=2 * radius,
-            sizeAttenuation=True,
-            vertexColors="VertexColors",
-            map=tex,
-            alphaTest=0.5,
-            transparent=True,
-        )
-        mesh = p3s.Points(geo, mat)
-        self._add_child(mesh, pmin, pmax, persist=persist)
+        markers = Markers(pos=points, size=2 * radius, face_color=colors, alpha=0.5)
+        self._add_child(markers, pmin, pmax, persist=persist)
 
     def _add_child(self, obj, pmin, pmax, persist):
         """
@@ -570,40 +538,8 @@ class InteractiveDisplay(SceneCanvas):
         pmin = np.min(segments, axis=(0, 1))
         pmax = np.max(segments, axis=(0, 1))
 
-        geo = p3s.LineSegmentsGeometry(positions=segments)
-        mat = p3s.LineMaterial(linewidth=width, color=color)
-        mesh = p3s.LineSegments2(geo, mat)
+        line_plot = LinePlot(data=segments.reshape(-1, 3), color=color, width=width)
 
         # Lines are not flagged as persistent as they correspond to paths, which
         # can changes from one display to the next.
-        self._add_child(mesh, pmin, pmax, persist=False)
-
-    def _get_disk_sprite(self):
-        """
-        Returns the sprite used to represent transmitters and receivers though
-        ``_plot_points()``.
-
-        Output
-        ------
-        : [n,n,4], float
-            Sprite
-        """
-        if self._disk_sprite is not None:
-            return self._disk_sprite
-
-        n = 128
-        sprite = np.ones((n, n, 4))
-        sprite[:, :, 3] = 0.0
-        # Draw a disk with an empty circle close to the edge
-        ij = np.mgrid[:n, :n]
-        ij = ij.reshape(2, -1)
-
-        p = (ij + 0.5) / n - 0.5
-        t = np.linalg.norm(p, axis=0).reshape((n, n))
-        inside = t < 0.48
-        in_band = (t < 0.45) & (t > 0.42)
-        sprite[inside & (~in_band), 3] = 1.0
-
-        sprite = sprite.astype(np.float32)
-        self._disk_sprite = sprite
-        return sprite
+        self._add_child(line_plot, pmin, pmax, persist=False)

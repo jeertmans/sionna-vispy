@@ -14,5 +14,5 @@ def patch() -> contextlib.AbstractContextManager[InteractiveDisplay]:
     Monkey patch Sionna's scene previewer to use VisPy instead.
     """
     return unittest.mock.patch(
-        "sionna.rt.previewer.InteractiveDisplay", new=InteractiveDisplay
+        "sionna.rt.scene.InteractiveDisplay", new=InteractiveDisplay
     )

@@ -4,43 +4,39 @@
 # last locked with the following flags:
 #   pre: false
 #   features: []
-#   all-features: false
+#   all-features: true
 #   with-sources: false
-#   generate-hashes: false
 
 -e file:.
 absl-py==2.1.0
     # via tensorboard
     # via tensorflow
-annotated-types==0.7.0
-    # via pydantic
 asttokens==2.4.1
     # via stack-data
 astunparse==1.6.3
     # via tensorflow
-av==12.1.0
-    # via manim-slides
 cachetools==5.3.3
     # via google-auth
 certifi==2024.6.2
     # via requests
+cfgv==3.4.0
+    # via pre-commit
 charset-normalizer==3.3.2
     # via requests
-click==8.1.7
-    # via click-default-group
-    # via manim-slides
-click-default-group==1.2.4
-    # via manim-slides
 contourpy==1.2.1
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
 decorator==5.1.1
     # via ipython
+distlib==0.3.8
+    # via virtualenv
 drjit==0.4.6
     # via mitsuba
 executing==2.0.1
     # via stack-data
+filelock==3.15.1
+    # via virtualenv
 flatbuffers==24.3.25
     # via tensorflow
 fonttools==4.53.0
@@ -63,6 +59,8 @@ h5py==3.11.0
     # via tensorflow
 hsluv==5.0.4
     # via vispy
+identify==2.5.36
+    # via pre-commit
 idna==3.7
     # via requests
 importlib-resources==6.4.0
@@ -76,14 +74,16 @@ ipython==8.25.0
     # via ipywidgets
 ipywidgets==8.0.5
     # via ipydatawidgets
+    # via jupyter-rfb
     # via pythreejs
     # via sionna
 jedi==0.19.1
     # via ipython
-jinja2==3.1.4
-    # via manim-slides
+jupyter-rfb==0.4.4
+    # via sionna-vispy
 jupyterlab-widgets==3.0.5
     # via ipywidgets
+    # via jupyter-rfb
     # via sionna
 keras==2.15.0
     # via tensorflow
@@ -92,32 +92,25 @@ kiwisolver==1.4.5
     # via vispy
 libclang==18.1.1
     # via tensorflow
-lxml==5.2.2
-    # via manim-slides
-    # via python-pptx
-manim-slides==5.1.7
 markdown==3.6
     # via tensorboard
-markdown-it-py==3.0.0
-    # via rich
 markupsafe==2.1.5
-    # via jinja2
     # via werkzeug
 matplotlib==3.9.0
     # via sionna
 matplotlib-inline==0.1.7
     # via ipython
-mdurl==0.1.2
-    # via markdown-it-py
 mitsuba==3.5.2
     # via sionna
 ml-dtypes==0.3.2
     # via tensorflow
+nodeenv==1.9.1
+    # via pre-commit
 numpy==1.26.4
     # via contourpy
     # via h5py
     # via ipydatawidgets
-    # via manim-slides
+    # via jupyter-rfb
     # via matplotlib
     # via ml-dtypes
     # via opt-einsum
@@ -134,7 +127,6 @@ opt-einsum==3.3.0
 packaging==24.1
     # via matplotlib
     # via pytest
-    # via qtpy
     # via tensorflow
     # via vispy
 parso==0.8.4
@@ -142,11 +134,13 @@ parso==0.8.4
 pexpect==4.9.0
     # via ipython
 pillow==10.3.0
-    # via manim-slides
     # via matplotlib
-    # via python-pptx
+platformdirs==4.2.2
+    # via virtualenv
 pluggy==1.5.0
     # via pytest
+    # via pytest-qt
+pre-commit==3.7.1
 prompt-toolkit==3.0.47
     # via ipython
 protobuf==4.25.3
@@ -161,44 +155,42 @@ pyasn1==0.6.0
     # via rsa
 pyasn1-modules==0.4.0
     # via google-auth
-pydantic==2.7.4
-    # via manim-slides
-    # via pydantic-extra-types
-pydantic-core==2.18.4
-    # via pydantic
-pydantic-extra-types==2.8.1
-    # via manim-slides
 pygments==2.18.0
     # via ipython
-    # via rich
 pyparsing==3.1.2
     # via matplotlib
+pyside6==6.7.1
+    # via sionna-vispy
+pyside6-addons==6.7.1
+    # via pyside6
+pyside6-essentials==6.7.1
+    # via pyside6
+    # via pyside6-addons
 pytest==8.2.2
+    # via pytest-qt
+pytest-qt==4.4.0
 python-dateutil==2.9.0.post0
     # via matplotlib
-python-pptx==0.6.23
-    # via manim-slides
 pythreejs==2.4.2
     # via sionna
-qtpy==2.4.1
-    # via manim-slides
+pyyaml==6.0.1
+    # via pre-commit
 requests==2.32.3
-    # via manim-slides
     # via requests-oauthlib
     # via tensorboard
 requests-oauthlib==2.0.0
     # via google-auth-oauthlib
-rich==13.7.1
-    # via manim-slides
 rsa==4.9
     # via google-auth
-rtoml==0.10.0
-    # via manim-slides
 scipy==1.13.1
     # via sionna
 setuptools==70.0.0
     # via tensorboard
     # via tensorflow
+shiboken6==6.7.1
+    # via pyside6
+    # via pyside6-addons
+    # via pyside6-essentials
 sionna==0.18.0
     # via sionna-vispy
 six==1.16.0
@@ -222,8 +214,6 @@ tensorflow-io-gcs-filesystem==0.37.0
     # via tensorflow
 termcolor==2.4.0
     # via tensorflow
-tqdm==4.66.4
-    # via manim-slides
 traitlets==5.14.3
     # via ipython
     # via ipywidgets
@@ -234,11 +224,11 @@ traittypes==0.2.1
     # via ipydatawidgets
 typing-extensions==4.12.2
     # via ipython
-    # via pydantic
-    # via pydantic-core
     # via tensorflow
 urllib3==2.2.1
     # via requests
+virtualenv==20.26.2
+    # via pre-commit
 vispy==0.14.2
     # via sionna-vispy
 wcwidth==0.2.13
@@ -251,5 +241,3 @@ widgetsnbextension==4.0.11
     # via ipywidgets
 wrapt==1.14.1
     # via tensorflow
-xlsxwriter==3.2.0
-    # via python-pptx
