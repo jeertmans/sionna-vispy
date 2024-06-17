@@ -1,66 +1,61 @@
 import sionna
 
 # For link-level simulations
-from sionna.rt import PlanarArray, Receiver, Transmitter, load_scene
+from sionna.rt import RIS, PlanarArray, Receiver, Transmitter, load_scene
 
-scene = load_scene(sionna.rt.scene.munich)
+import sionna_vispy
 
-# Configure antenna array for all transmitters
-scene.tx_array = PlanarArray(
-    num_rows=1,
-    num_cols=1,
-    vertical_spacing=0.5,
-    horizontal_spacing=0.5,
-    pattern="tr38901",
-    polarization="V",
-)
+scene = load_scene(sionna.rt.scene.simple_street_canyon)
+scene.frequency = 3e9
+scene.tx_array = PlanarArray(1, 1, 0.5, 0.5, "iso", "V")
+scene.rx_array = PlanarArray(1, 1, 0.5, 0.5, "iso", "V")
 
-# Configure antenna array for all receivers
-scene.rx_array = PlanarArray(
-    num_rows=1,
-    num_cols=1,
-    vertical_spacing=0.5,
-    horizontal_spacing=0.5,
-    pattern="dipole",
-    polarization="cross",
-)
-
-# Create transmitter
-tx = Transmitter(name="tx", position=[8.5, 21, 27])
-
-# Add transmitter instance to scene
+tx = Transmitter("tx", position=[-32, 10, 32], look_at=[0, 0, 0])
 scene.add(tx)
 
-# Create a receiver
-rx = Receiver(name="rx", position=[45, 90, 1.5], orientation=[0, 0, 0])
-
-# Add receiver instance to scene
+rx = Receiver("rx", position=[22, 52, 1.7])
 scene.add(rx)
 
-tx.look_at(rx)  # Transmitter points towards receiver
+# Place RIS
+ris = RIS(
+    name="ris",
+    position=[32, -9, 32],
+    num_rows=100,
+    num_cols=100,
+    num_modes=1,
+    look_at=(tx.position + rx.position) / 2,
+)  # Look in between TX and RX
+scene.add(ris)
 
-scene.frequency = 2.14e9  # in Hz; implicitly updates RadioMaterials
+ris.phase_gradient_reflector(tx.position, rx.position)
 
-scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
 
-paths = scene.compute_paths(max_depth=2, num_samples=1e3)
-
-cm = scene.coverage_map(
-    max_depth=2,
-    diffraction=True,  # Disable to see the effects of diffraction
-    cm_cell_size=(5.0, 5.0),  # Grid size of coverage map cells in m
-    combining_vec=None,
-    precoding_vec=None,
-    num_samples=int(20e3),
+paths = scene.compute_paths(
+    num_samples=2e1,  # increase for better resolution
+    max_depth=5,
+    los=True,
+    reflection=True,
+    diffraction=True,
+    ris=True,
 )
 
-import unittest.mock
 
-from sionna_vispy.previewer import InteractiveDisplay
+cm = scene.coverage_map(
+    num_samples=2e1,  # increase for better resolution
+    max_depth=5,
+    los=True,
+    reflection=True,
+    diffraction=True,
+    ris=True,
+    cm_cell_size=[4, 4],
+    cm_orientation=[0, 0, 0],
+    cm_center=[0, 0, 1.5],
+    cm_size=[200, 200],
+)
 
-# with sionna_vispy.patch():
+paths = None
 
-with unittest.mock.patch(
-    "sionna.rt.previewer.InteractiveDisplay", new=InteractiveDisplay
-):
-    scene.preview(coverage_map=cm)
+with sionna_vispy.patch():
+    canvas = scene.preview(paths=paths, coverage_map=cm, show_orientations=True)
+    canvas.show()
+    canvas.app.run()
