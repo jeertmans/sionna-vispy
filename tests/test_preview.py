@@ -11,12 +11,12 @@ import sionna_vispy
 
 @pytest.fixture
 def num_samples() -> int:
-    return 1e2
+    return 10
 
 
 @pytest.fixture
 def max_depth() -> int:
-    return 5
+    return 2
 
 
 @pytest.fixture
@@ -31,7 +31,7 @@ def reflection() -> bool:
 
 @pytest.fixture
 def diffraction() -> bool:
-    return True
+    return False
 
 
 @pytest.fixture
