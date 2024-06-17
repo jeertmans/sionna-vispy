@@ -38,12 +38,8 @@ docstring-code-format = true
 
 [tool.ruff.lint]
 extend-ignore = [
-  "D203",  # no-blank-line-before-class
-  "D212",  # multi-line-summary-second-line
-  "D407",  # Missing dashed underline after section
-  "F722",  # Syntax error in forward annotation
 ]
-extend-select = ["B", "C90", "D", "I", "N", "RUF", "UP", "T"]
+extend-select = ["B", "C90", "I", "N", "RUF", "UP", "T"]
 isort = {known-first-party = ["sionna_vispy", "tests"]}
 
 [tool.ruff.lint.pep8-naming]

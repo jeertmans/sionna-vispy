@@ -58,7 +58,7 @@ def scene() -> Scene:
         num_rows=100,
         num_cols=100,
         num_modes=1,
-        look_at=(tx.position + rx.position) / 2,
+        look_at=(tx.position + rx.position) / 2,  # type: ignore[reportOperatorIssue]
     )
     scene.add(ris)
 

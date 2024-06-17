@@ -15,7 +15,6 @@ import drjit as dr
 import matplotlib
 import mitsuba as mi
 import numpy as np
-import pythreejs as p3s
 from sionna.rt.renderer import coverage_map_color_mapping
 from sionna.rt.utils import (
     mitsuba_rectangle_to_world,
@@ -26,6 +25,7 @@ from sionna.rt.utils import (
 from vispy.geometry.generation import create_cylinder
 from vispy.scene import SceneCanvas
 from vispy.scene.visuals import Image, LinePlot, Markers, Mesh
+from vispy.visuals.filters.clipping_planes import PlanesClipper
 from vispy.visuals.transforms import MatrixTransform, STTransform
 
 
@@ -47,9 +47,8 @@ class InteractiveDisplay(SceneCanvas):
 
     def __init__(self, scene, resolution, fov, background) -> None:
         super().__init__(keys="interactive", size=resolution, bgcolor=background)
-        print("Patched version")
 
-        self.unfreeze()
+        self.unfreeze()  # allow creating attributes
 
         self._resolution = resolution
         self._sionna_scene = scene  # self._scene is already defined by VisPy
@@ -57,7 +56,7 @@ class InteractiveDisplay(SceneCanvas):
         # List of objects in the scene
         self._objects = []
         # Bounding box of the scene
-        self._bbox = mi.ScalarBoundingBox3f()
+        self._bbox = mi.ScalarBoundingBox3f()  # type: ignore[reportAttributeAccessIssue]
 
         ####################################################
         # Setup the viewer
@@ -65,20 +64,10 @@ class InteractiveDisplay(SceneCanvas):
 
         # View
         self._view = self.central_widget.add_view()
-
         self._view.camera = "turntable"
-        # self._view.camera.transform.translate((+100, 100, 100))
-        # self._view.camera.depth_value = 1e3
-
         self._camera = self._view.camera
-
-        # Camera
-        # self._camera = PerspectiveCamera(
-        #     fov=fov,
-        #     scale_factor=1000,
-        #     center=[0, 0, 0],
-        # )
-        # self._view.camera = self._camera
+        self._clipper = PlanesClipper()
+        self._view.attach(self._clipper)
 
         self.freeze()
 
@@ -119,20 +108,9 @@ class InteractiveDisplay(SceneCanvas):
 
     def center_view(self):
         """
-        Automatically place the camera based on the scene's bounding box such
-        that it is located at (-1, -1, 1) on the normalized bounding box, and
-        oriented toward the center of the scene.
+        Automatically place the camera and observable range.
         """
-        bbox = self._bbox if self._bbox.valid() else mi.ScalarBoundingBox3f(0.0)
-        center = bbox.center()
-
-        corner = [bbox.min.x, center.y, 1.5 * bbox.max.z]
-        if np.allclose(corner, 0):
-            corner = (-1, -1, 1)
-        # self._camera.center = tuple(corner)
-
-        self._view.camera.set_range()
-        # self._camera.lookAt(center)
+        self._camera.set_range()
 
     def plot_radio_devices(self, show_orientations=False):
         """
@@ -174,6 +152,7 @@ class InteractiveDisplay(SceneCanvas):
                 if len(devices) == 0:
                     continue
                 starts, ends = [], []
+                color = None
                 for rd in devices:
                     # Arrow line
                     color = rd.color
@@ -186,36 +165,25 @@ class InteractiveDisplay(SceneCanvas):
                     meshdata = create_cylinder(
                         rows=80,
                         cols=80,
-                        radius=(30 * head_length, 0),
-                        length=100 * head_length,
+                        radius=(0.3 * head_length, 0),
+                        length=head_length,
                     )
                     angles = rd.orientation.numpy()
                     mesh = Mesh(color=color, meshdata=meshdata)
                     mesh.transform = MatrixTransform()
-                    print(f"{np.rad2deg(angles) = }")
+                    mesh.transform.rotate(np.rad2deg(angles[2]), (1, 0, 0))
+                    mesh.transform.rotate(np.rad2deg(angles[1] + np.pi / 2), (0, 1, 0))
                     mesh.transform.rotate(np.rad2deg(angles[0]), (0, 0, 1))
-                    mesh.transform.rotate(np.rad2deg(angles[2] + np.pi / 2), (0, 1, 0))
-                    mesh.transform.rotate(np.rad2deg(angles[1]), (1, 0, 0))
                     mesh.transform.translate(np.append(endpoint.numpy(), 1))
 
-                    # geo = p3s.CylinderGeometry(
-                    #     radiusTop=0,
-                    #     radiusBottom=0.3 * head_length,
-                    #     height=head_length,
-                    #     radialSegments=8,
-                    #     heightSegments=0,
-                    #     openEnded=False,
-                    # )
-                    # mat = p3s.MeshLambertMaterial(color=color)
-                    # mesh = p3s.Mesh(geo, mat)
-                    # mesh.position = tuple(endpoint)
-                    # angles = rd.orientation.numpy()
-                    # mesh.rotateZ(angles[0] - np.pi / 2)
-                    # mesh.rotateY(angles[2])
-                    # mesh.rotateX(-angles[1])
                     self._add_child(mesh, zeros, zeros, persist=False)
 
-                self._plot_lines(np.array(starts), np.array(ends), width=2, color=color)
+                self._plot_lines(
+                    np.array(starts),
+                    np.array(ends),
+                    width=2,
+                    color=color,  # type: ignore[reportArgumentType]
+                )
 
     def plot_paths(self, paths):
         """
@@ -374,13 +342,15 @@ class InteractiveDisplay(SceneCanvas):
         clip_plane_orientation : tuple[float, float, float]
             Normal vector of the clipping plane.
         """
-        return  # TODO
+        # TODO: test me
         if offset is None:
-            self._renderer.localClippingEnabled = False
-            self._renderer.clippingPlanes = []
+            self._clipper.clipping_planes = None
         else:
-            self._renderer.localClippingEnabled = True
-            self._renderer.clippingPlanes = [p3s.Plane(orientation, offset)]
+            bbox = self._bbox if self._bbox.valid() else mi.ScalarBoundingBox3f(0.0)  # type: ignore[reportAttributeAccessIssue]
+            center = bbox.center()
+            self._clipper.clipping_planes = np.array(
+                [[offset * orientation + center, orientation]]
+            )
 
     @property
     def camera(self):
@@ -394,7 +364,7 @@ class InteractiveDisplay(SceneCanvas):
         """
         None : Get the orbit
         """
-        raise AttributeError("VisPy has not orbit")
+        raise AttributeError("VisPy has not orbit controls like PyThreeJS")
 
     def resolution(self):
         """
@@ -481,7 +451,12 @@ class InteractiveDisplay(SceneCanvas):
         colors = colors.astype(np.float32)
         assert (colors.ndim == 2) and (colors.shape[1] == 3) and (colors.shape[0] == n)
 
-        markers = Markers(pos=points, size=2 * radius, face_color=colors, alpha=0.5)
+        markers = Markers(
+            pos=points,
+            size=2 * radius,
+            face_color=colors,
+            alpha=0.5,  # type: ignore[reportArgumentType]
+        )
         self._add_child(markers, pmin, pmax, persist=persist)
 
     def _add_child(self, obj, pmin, pmax, persist):
