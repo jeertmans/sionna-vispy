@@ -32,14 +32,14 @@ After:
 
 ```python
 with sionna_vispy.patch():
-    canvas = scene.preview()
+    canvas = scene.preview(...)
     canvas.show()
     canvas.app.run()
 ```
 
 or simply:
 
-```ipython
+```python
 with sionna_vispy.patch():
     scene.preview()
 ```
