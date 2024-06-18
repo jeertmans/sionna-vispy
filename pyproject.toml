@@ -6,13 +6,27 @@ requires = ["hatchling", "hatch-fancy-pypi-readme"]
 authors = [
   {name = "Jérome Eertmans", email = "jeertmans@icloud.com"},
 ]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Topic :: Multimedia :: Graphics",
+  "Topic :: Scientific/Engineering",
+]
 dependencies = [
   "sionna>=0.18.0",
   "vispy>=0.14.2",
 ]
 description = "VisPy scene previewer for Sionna"
+dynamic = ["readme", "version"]
+keywords = ["sionna", "vispy", "raytracing", "preview"]
+license = "MIT"
 name = "sionna-vispy"
-readme = "README.md"
 requires-python = ">= 3.8"
 
 [project.optional-dependencies]

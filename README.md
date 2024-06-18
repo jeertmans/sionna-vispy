@@ -1,5 +1,8 @@
 # sionna-vispy
 
+[![Latest Release][pypi-version-badge]][pypi-version-url]
+[![Python version][pypi-python-version-badge]][pypi-version-url]
+
 A [VisPy](https://github.com/vispy/vispy)
 backend to preview
 [Sionna](https://github.com/NVlabs/sionna) scenes
@@ -127,3 +130,8 @@ This project welcomes any contribution, and especially:
 
 As stated above, new features are not expected to be added, unless they are also
 added to the original pythreejs previewer.
+
+[pypi-version-badge]: https://img.shields.io/pypi/v/sionna-vispy?label=sionna-vispy
+[pypi-version-url]: https://pypi.org/project/sionna-vispy/
+[pypi-python-version-badge]: https://img.shields.io/pypi/pyversions/sionna-vispy
+[pypi-download-badge]: https://img.shields.io/pypi/dm/sionna-vispy
