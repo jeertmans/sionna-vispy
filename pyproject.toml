@@ -90,16 +90,7 @@ allow-direct-references = true
 content-type = "text/markdown"
 
 [[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
-text = """<p align="center">
-  <a href="https://www.github.com/jeertmans/manin-slides">
-    <img src="https://raw.githubusercontent.com/jeertmans/manim-slides/main/static/logo.png"/>
-  </a>
-</p>
-"""
-
-[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
 path = "README.md"
-start-after = "<!-- start pypi -->"
 
 [[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
 pattern = '> \[!([A-Z]+)\]'
