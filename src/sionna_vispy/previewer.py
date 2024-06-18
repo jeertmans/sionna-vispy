@@ -24,6 +24,7 @@ from sionna.rt.utils import (
 )
 from vispy.geometry.generation import create_cylinder
 from vispy.scene import SceneCanvas
+from vispy.scene.cameras.turntable import TurntableCamera
 from vispy.scene.visuals import Image, LinePlot, Markers, Mesh
 from vispy.visuals.filters.clipping_planes import PlanesClipper
 from vispy.visuals.transforms import MatrixTransform, STTransform
@@ -64,8 +65,9 @@ class InteractiveDisplay(SceneCanvas):
 
         # View
         self._view = self.central_widget.add_view()
-        self._view.camera = "turntable"
+        self._view.camera = TurntableCamera(fov=fov)
         self._camera = self._view.camera
+        self._camera.depth_value = 1e6
         self._clipper = PlanesClipper()
         self._view.attach(self._clipper)
 
@@ -418,6 +420,7 @@ class InteractiveDisplay(SceneCanvas):
         mesh = Mesh(
             vertices=vertices, faces=faces, vertex_colors=colors, shading="flat"
         )
+        mesh.shading_filter.ambiant_light = (1, 1, 1, 0.8)
         self._add_child(mesh, pmin, pmax, persist=persist)
 
     def _plot_points(self, points, persist, colors=None, radius=0.05):
@@ -453,8 +456,10 @@ class InteractiveDisplay(SceneCanvas):
 
         markers = Markers(
             pos=points,
-            size=10 * radius,
+            size=2 * radius,
+            edge_width_rel=0.05,
             face_color=colors,
+            scaling=True,
             alpha=0.5,  # type: ignore[reportArgumentType]
         )
         self._add_child(markers, pmin, pmax, persist=persist)
@@ -465,8 +470,7 @@ class InteractiveDisplay(SceneCanvas):
 
         Input
         ------
-        obj : :class:`~pythreejs.Mesh`
-            Mesh to display
+        obj : VisPy node to display
 
         pmin : [3], float
             Lowest position for the bounding box
