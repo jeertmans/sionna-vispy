@@ -5,6 +5,10 @@ backend to preview
 [Sionna](https://github.com/NVlabs/sionna) scenes
 that works both inside and **outside** Jupyter Notebook.
 
+<p align="center">
+  <img alt="Example VisPy canvas" width="480" src="https://github.com/jeertmans/sionna-vispy/assets/27275099/40905bb3-8851-43bf-9374-35a331fa0b59">
+</p>
+
 This library consists of two parts:
 
 1. a VisPy-based `InteractiveDisplay` to replace `sionna.rt.previewer`;
