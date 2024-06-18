@@ -11,10 +11,15 @@
 absl-py==2.1.0
     # via tensorboard
     # via tensorflow
+annotated-types==0.7.0
+    # via pydantic
 asttokens==2.4.1
     # via stack-data
 astunparse==1.6.3
     # via tensorflow
+bracex==2.4
+    # via wcmatch
+bump-my-version==0.23.0
 cachetools==5.3.3
     # via google-auth
 certifi==2024.6.2
@@ -23,6 +28,9 @@ cfgv==3.4.0
     # via pre-commit
 charset-normalizer==3.3.2
     # via requests
+click==8.1.7
+    # via bump-my-version
+    # via rich-click
 contourpy==1.2.1
     # via matplotlib
 cycler==0.12.1
@@ -70,7 +78,7 @@ iniconfig==2.0.0
 ipydatawidgets==4.3.2
     # via pythreejs
     # via sionna
-ipython==8.25.0
+ipython==8.18.0
     # via ipywidgets
 ipywidgets==8.0.5
     # via ipydatawidgets
@@ -94,12 +102,16 @@ libclang==18.1.1
     # via tensorflow
 markdown==3.6
     # via tensorboard
+markdown-it-py==3.0.0
+    # via rich
 markupsafe==2.1.5
     # via werkzeug
 matplotlib==3.9.0
     # via sionna
 matplotlib-inline==0.1.7
     # via ipython
+mdurl==0.1.2
+    # via markdown-it-py
 mitsuba==3.5.2
     # via sionna
 ml-dtypes==0.3.2
@@ -140,8 +152,9 @@ platformdirs==4.2.2
 pluggy==1.5.0
     # via pytest
 pre-commit==3.7.1
-prompt-toolkit==3.0.47
+prompt-toolkit==3.0.36
     # via ipython
+    # via questionary
 protobuf==4.25.3
     # via tensorboard
     # via tensorflow
@@ -154,8 +167,16 @@ pyasn1==0.6.0
     # via rsa
 pyasn1-modules==0.4.0
     # via google-auth
+pydantic==2.7.4
+    # via bump-my-version
+    # via pydantic-settings
+pydantic-core==2.18.4
+    # via pydantic
+pydantic-settings==2.3.3
+    # via bump-my-version
 pygments==2.18.0
     # via ipython
+    # via rich
 pyparsing==3.1.2
     # via matplotlib
 pyside6==6.7.1
@@ -168,15 +189,24 @@ pyside6-essentials==6.7.1
 pytest==8.2.2
 python-dateutil==2.9.0.post0
     # via matplotlib
+python-dotenv==1.0.1
+    # via pydantic-settings
 pythreejs==2.4.2
     # via sionna
 pyyaml==6.0.1
     # via pre-commit
+questionary==2.0.1
+    # via bump-my-version
 requests==2.32.3
     # via requests-oauthlib
     # via tensorboard
 requests-oauthlib==2.0.0
     # via google-auth-oauthlib
+rich==13.7.1
+    # via bump-my-version
+    # via rich-click
+rich-click==1.8.3
+    # via bump-my-version
 rsa==4.9
     # via google-auth
 scipy==1.13.1
@@ -211,6 +241,8 @@ tensorflow-io-gcs-filesystem==0.37.0
     # via tensorflow
 termcolor==2.4.0
     # via tensorflow
+tomlkit==0.12.5
+    # via bump-my-version
 traitlets==5.14.3
     # via ipython
     # via ipywidgets
@@ -220,7 +252,9 @@ traitlets==5.14.3
 traittypes==0.2.1
     # via ipydatawidgets
 typing-extensions==4.12.2
-    # via ipython
+    # via pydantic
+    # via pydantic-core
+    # via rich-click
     # via tensorflow
 urllib3==2.2.1
     # via requests
@@ -228,6 +262,8 @@ virtualenv==20.26.2
     # via pre-commit
 vispy==0.14.2
     # via sionna-vispy
+wcmatch==8.5.2
+    # via bump-my-version
 wcwidth==0.2.13
     # via prompt-toolkit
 werkzeug==3.0.3

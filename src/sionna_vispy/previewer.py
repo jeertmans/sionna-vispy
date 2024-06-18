@@ -420,7 +420,7 @@ class InteractiveDisplay(SceneCanvas):
         mesh = Mesh(
             vertices=vertices, faces=faces, vertex_colors=colors, shading="flat"
         )
-        mesh.shading_filter.ambiant_light = (1, 1, 1, 0.8)
+        mesh.shading_filter.ambiant_light = (1, 1, 1, 0.8)  # type: ignore
         self._add_child(mesh, pmin, pmax, persist=persist)
 
     def _plot_points(self, points, persist, colors=None, radius=0.05):
@@ -459,7 +459,7 @@ class InteractiveDisplay(SceneCanvas):
             size=2 * radius,
             edge_width_rel=0.05,
             face_color=colors,
-            scaling=True,
+            scaling="scene",
             alpha=0.5,  # type: ignore[reportArgumentType]
         )
         self._add_child(markers, pmin, pmax, persist=persist)
