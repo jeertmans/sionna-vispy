@@ -18,7 +18,7 @@ This library consists of two parts:
 ## Installation
 
 For the best out-of-the-box experience, we recommend
-installing with Pip with `recommended` extras:
+installing via Pip with `recommended` extras:
 
 ```bash
 pip install sionna-vispy[recommended]
