@@ -77,7 +77,7 @@ filename = "CHANGELOG.md"
 replace = '''<!-- start changelog -->
 
 (unreleased)=
-## [Unreleased](https://github.com/jeertmans/sionna-vispy/compare/{new_version}...HEAD)'''
+## [Unreleased](https://github.com/jeertmans/sionna-vispy/compare/v{new_version}...HEAD)'''
 search = "<!-- start changelog -->"
 
 [tool.hatch.build.targets.wheel]
