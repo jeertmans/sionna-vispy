@@ -273,7 +273,7 @@ class InteractiveDisplay(SceneCanvas):
         to_map, normalizer, color_map = coverage_map_color_mapping(
             coverage_map, db_scale=db_scale, vmin=vmin, vmax=vmax
         )
-        texture = color_map(normalizer(to_map)).astype(np.float32)
+        texture = color_map(normalizer(to_map)).astype(np.float32)  # type: ignore[reportTypeAccessIssue]
         texture[:, :, 3] = (coverage_map > 0.0).astype(np.float32)
         # Pre-multiply alpha
         texture[:, :, :3] *= texture[:, :, 3, None]

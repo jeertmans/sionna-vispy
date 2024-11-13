@@ -31,7 +31,7 @@ requires-python = ">= 3.8"
 
 [project.optional-dependencies]
 recommended = [
-  "jupyter-rfb>=0.4.4",
+  "jupyter-rfb>=0.3.3",
   "pyside6>=6.0.0",
 ]
 
@@ -118,13 +118,15 @@ docstring-code-format = true
 extend-select = ["B", "C90", "I", "N", "RUF", "UP", "T"]
 isort = {known-first-party = ["sionna_vispy", "tests"]}
 
-[tool.rye]
+[tool.uv]
 dev-dependencies = [
+  "bump-my-version>=0.10.0",
   # dev
-  "bump-my-version>=0.23.0",
-  "pre-commit>=3.7.1",
+  "pre-commit>=3.5.0",
   # tests
-  "pytest>=8.2.2",
-  "pyside6>=6.0.0",
+  "pytest>=8.3.3",
+  "sionna-vispy[recommended]",
 ]
-managed = true
+
+[tool.uv.sources]
+sionna-vispy = {workspace = true}
