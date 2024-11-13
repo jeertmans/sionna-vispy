@@ -476,7 +476,7 @@ class InteractiveDisplay(SceneCanvas):
 
     def _add_child(self, obj, pmin, pmax, persist):
         """
-        Adds an object for display
+        Adds an object for display.
 
         Input
         ------
@@ -522,12 +522,19 @@ class InteractiveDisplay(SceneCanvas):
         assert ends.ndim == 2 and ends.shape[1] == 3
         assert starts.shape[0] == ends.shape[0]
 
-        segments = np.hstack((starts, ends)).astype(np.float32).reshape(-1, 2, 3)
-        pmin = np.min(segments, axis=(0, 1))
-        pmax = np.max(segments, axis=(0, 1))
+        paths = np.hstack((starts, ends)).astype(np.float32).reshape(-1, 3)
+        connect = np.ones(paths.shape[0], dtype=bool)
+        connect[1::2] = False
+
+        pmin = np.min(paths, axis=0)
+        pmax = np.max(paths, axis=0)
 
         line_plot = LinePlot(
-            data=segments.reshape(-1, 3), color=color, width=width, marker_size=0
+            data=paths,
+            color=color,
+            width=width,
+            marker_size=0,
+            connect=connect,
         )
 
         # Lines are not flagged as persistent as they correspond to paths, which
