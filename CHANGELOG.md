@@ -13,7 +13,10 @@ for our library.
 <!-- start changelog -->
 
 (unreleased)=
-## [Unreleased](https://github.com/jeertmans/sionna-vispy/compare/v0.18.0.1...HEAD)
+## [Unreleased](https://github.com/jeertmans/sionna-vispy/compare/v0.19.0...HEAD)
+
+(v0.19.0)=
+## [v0.19.0](https://github.com/jeertmans/sionna-vispy/compare/v0.18.0.1...v0.19.0)
 
 (v0.18.0.1)=
 ## [v0.18.0.1](https://github.com/jeertmans/sionna-vispy/compare/v0.18.0...v0.18.0.1)
