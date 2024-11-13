@@ -9,7 +9,7 @@ backend to preview
 that works both inside and **outside** Jupyter Notebook.
 
 <p align="center">
-  <img alt="Example VisPy canvas" width="480" src="https://github.com/jeertmans/sionna-vispy/assets/27275099/40905bb3-8851-43bf-9374-35a331fa0b59">
+  <img alt="Example VisPy canvas" width="480" src="https://github.com/user-attachments/assets/04195e43-674b-43d6-8422-baf3d4dc572d">
 </p>
 
 This library consists of two parts:
