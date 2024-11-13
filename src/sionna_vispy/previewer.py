@@ -248,7 +248,13 @@ class InteractiveDisplay(SceneCanvas):
         )
 
     def plot_coverage_map(
-        self, coverage_map, tx=0, db_scale=True, vmin=None, vmax=None
+        self,
+        coverage_map,
+        tx=0,
+        db_scale=True,
+        vmin=None,
+        vmax=None,
+        metric="path_gain",
     ):
         """
         Plot the coverage map as a textured rectangle in the scene. Regions
@@ -258,7 +264,11 @@ class InteractiveDisplay(SceneCanvas):
         # coverage_map = resample_to_corners(
         #     coverage_map[tx, :, :].numpy()
         # )
-        coverage_map = coverage_map[tx, :, :].numpy()
+        cm = getattr(coverage_map, metric).numpy()
+        if tx is None:
+            coverage_map = np.max(cm, axis=0)
+        else:
+            coverage_map = cm[tx]
 
         # Create a rectangle from two triangles
         p00 = to_world.transform_affine([-1, -1, 0])

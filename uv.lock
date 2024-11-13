@@ -1808,7 +1808,7 @@ dev = [
 requires-dist = [
     { name = "jupyter-rfb", marker = "extra == 'recommended'", specifier = ">=0.3.3" },
     { name = "pyside6", marker = "extra == 'recommended'", specifier = ">=6.0.0" },
-    { name = "sionna", specifier = ">=0.18.0" },
+    { name = "sionna", specifier = ">=0.19.0" },
     { name = "vispy", specifier = ">=0.14.2" },
 ]
 
