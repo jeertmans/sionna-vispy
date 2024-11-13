@@ -48,3 +48,6 @@ jobs:
 
     - name: Run pytest
       run: uv run pytest
+
+    - name: Run example
+      run: uv run python example.py

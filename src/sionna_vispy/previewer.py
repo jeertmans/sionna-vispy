@@ -534,7 +534,7 @@ class InteractiveDisplay(SceneCanvas):
             color=color,
             width=width,
             marker_size=0,
-            connect=connect,
+            connect=connect,  # type: ignore[reportArgumentType]
         )
 
         # Lines are not flagged as persistent as they correspond to paths, which
