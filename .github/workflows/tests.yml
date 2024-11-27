@@ -28,9 +28,6 @@ jobs:
       with:
         enable-cache: true
 
-    - name: Setup Python ${{ matrix.pyversion }}
-      run: uv python install ${{ matrix.pyversion }}
-
     - name: Install Linux dependencies
       if: matrix.os == 'ubuntu-latest'
       run: |
@@ -43,8 +40,5 @@ jobs:
       if: matrix.os == 'windows-latest'
       uses: ssciwr/setup-mesa-dist-win@v2
 
-    - name: Install local package
-      run: uv sync --locked
-
     - name: Run pytest
-      run: uv run pytest
+      run: uv run --python ${{ matrix.pyversion }} --frozen pytest
