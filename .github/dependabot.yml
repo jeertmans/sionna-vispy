@@ -19,4 +19,4 @@ updates:
   - ci
   - dependencies
   allow:
-  - dependency-name: "sionna"
+  - dependency-name: sionna
