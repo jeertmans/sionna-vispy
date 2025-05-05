@@ -18,8 +18,25 @@ for our library.
 (v0.19.0)=
 ## [v0.19.0](https://github.com/jeertmans/sionna-vispy/compare/v0.18.0.1...v0.19.0)
 
+(v0.19.0-chore)=
+### Chore
+
+- Changed project manager from Rye to uv.
+  [#5](https://github.com/jeertmans/sionna-vispy/pull/5)
+
+(v0.19.0-fixed)=
+### Fixed
+
+- Disconnect ray paths so they are drawn separately.
+  [#4](https://github.com/jeertmans/sionna-vispy/pull/4)
+
 (v0.18.0.1)=
 ## [v0.18.0.1](https://github.com/jeertmans/sionna-vispy/compare/v0.18.0...v0.18.0.1)
+
+(v0.18.0-chore)=
+### Chore
+
+- Added project URLs to PyPI.
 
 (v0.18.0)=
 ## [v0.18.0](https://github.com/jeertmans/sionna-vispy/commits/v0.18.0)
