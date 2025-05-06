@@ -15,6 +15,20 @@ for our library.
 (unreleased)=
 ## [Unreleased](https://github.com/jeertmans/sionna-vispy/compare/v0.19.0...HEAD)
 
+(unreleased-fixed)=
+### Fixed
+
+- Fixed clipping plane (now works as expected).
+  [#13](https://github.com/jeertmans/sionna-vispy/pull/13)
+
+(unreleased-refactored)=
+### Refactored
+
+- Refactored library to be compatible with Sionna v1,
+  except for **show_legend** method that is not yet implemented
+  (any contribution is welcome).
+  [#13](https://github.com/jeertmans/sionna-vispy/pull/13)
+
 (v0.19.0)=
 ## [v0.19.0](https://github.com/jeertmans/sionna-vispy/compare/v0.18.0.1...v0.19.0)
 
