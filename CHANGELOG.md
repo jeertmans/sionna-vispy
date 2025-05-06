@@ -13,15 +13,18 @@ for our library.
 <!-- start changelog -->
 
 (unreleased)=
-## [Unreleased](https://github.com/jeertmans/sionna-vispy/compare/v0.19.0...HEAD)
+## [Unreleased](https://github.com/jeertmans/sionna-vispy/compare/v1.0.0...HEAD)
 
-(unreleased-fixed)=
+(v1.0.0)=
+## [v1.0.0](https://github.com/jeertmans/sionna-vispy/compare/v0.19.0...v1.0.0)
+
+(v1.0.0-fixed)=
 ### Fixed
 
 - Fixed clipping plane (now works as expected).
   [#13](https://github.com/jeertmans/sionna-vispy/pull/13)
 
-(unreleased-refactored)=
+(v1.0.0-refactored)=
 ### Refactored
 
 - Refactored library to be compatible with Sionna v1,
