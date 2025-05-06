@@ -5,11 +5,11 @@ from contextlib import contextmanager
 
 from sionna.rt.scene import Scene
 
-from .previewer import InteractiveDisplay
+from .previewer import Previewer
 
 
 @contextmanager
-def patch(*, patch_existing: bool = True) -> Iterator[type[InteractiveDisplay]]:
+def patch(*, patch_existing: bool = True) -> Iterator[type[Previewer]]:
     """
     Monkey patch Sionna's scene previewer to use VisPy instead.
 
@@ -38,9 +38,7 @@ def patch(*, patch_existing: bool = True) -> Iterator[type[InteractiveDisplay]]:
         for scene in scenes:
             scene._preview_widget = None
 
-        with unittest.mock.patch(
-            "sionna.rt.scene.InteractiveDisplay", new=InteractiveDisplay
-        ) as cls:
+        with unittest.mock.patch("sionna.rt.scene.Previewer", new=Previewer) as cls:
             yield cls
 
     finally:

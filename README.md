@@ -14,7 +14,7 @@ that works both inside and **outside** Jupyter Notebook.
 
 This library consists of two parts:
 
-1. a VisPy-based `InteractiveDisplay` to replace `sionna.rt.previewer`;
+1. a VisPy-based `Previewer` to replace `sionna.rt.previewer`;
 2. and a `patch()` context manager that dynamically replaces
   the old pythreejs previewer with the new VisPy previewer.
 
@@ -80,7 +80,7 @@ canvas
 > `canvas` must be the return variable
 > of the cell, because the `with` context
 > does not return an instance of
-> `InteractiveDisplay`.
+> `Previewer`.
 
 [^1]: Note that you need `jupyter_rfb` to work inside Jupyter Notebooks.
 
@@ -102,7 +102,7 @@ canvas.app.run()
 This package replaces the pythreejs previewer with some
 VisPy implementation by
 [*monkey-patching*](https://docs.python.org/3/library/unittest.mock.html#unittest.mock.patch)
-`sionna.rt.scene.InteractiveDisplay`.
+`sionna.rt.scene.Previewer`.
 
 Additionally, `patch()` will (by default) look at
 any existing `sionna.rt.scene.Scene` class instance in the local

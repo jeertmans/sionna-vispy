@@ -2,6 +2,17 @@
 build-backend = "hatchling.build"
 requires = ["hatchling", "hatch-fancy-pypi-readme"]
 
+[dependency-groups]
+dev = [
+  {include-group = "tests"},
+  "bump-my-version>=0.10.0",
+  "pre-commit>=3.5.0",
+]
+tests = [
+  "pytest>=8.3.3",
+  "sionna-vispy[recommended]",
+]
+
 [project]
 authors = [
   {name = "Jérome Eertmans", email = "jeertmans@icloud.com"},
@@ -19,7 +30,10 @@ classifiers = [
   "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-  "sionna>=0.19.0",
+  "drjit>=1.0.3",
+  "matplotlib>=3.7.5",
+  "numpy>=1.24.4",
+  "sionna-rt>=1.0.0",
   "vispy>=0.14.2",
 ]
 description = "VisPy scene previewer for Sionna"
@@ -111,6 +125,13 @@ include = ["src/sionna_vispy"]
 venv = ".venv"
 venvPath = "."
 
+[tool.pytest.ini_options]
+filterwarnings = [
+  "error",
+  "ignore:((.|\n)*)Sentinel is not a public part of the traitlets API((.|\n)*):DeprecationWarning",
+  "ignore: Conversion of an array with ndim > 0 to a scalar is deprecated.*:DeprecationWarning",
+]
+
 [tool.ruff.format]
 docstring-code-format = true
 
@@ -119,13 +140,10 @@ extend-select = ["B", "C90", "I", "N", "RUF", "UP", "T"]
 isort = {known-first-party = ["sionna_vispy", "tests"]}
 
 [tool.uv]
-dev-dependencies = [
-  "bump-my-version>=0.10.0",
-  # dev
-  "pre-commit>=3.5.0",
-  # tests
-  "pytest>=8.3.3",
-  "sionna-vispy[recommended]",
+override-dependencies = [
+  "matplotlib>=3.7.5",
+  "numpy>=1.24.4",
+  "scipy>=1.10.1",
 ]
 
 [tool.uv.sources]

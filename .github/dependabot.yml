@@ -9,7 +9,7 @@ updates:
   labels:
   - ci
   - dependencies
-- package-ecosystem: python
+- package-ecosystem: uv
   directory: /
   schedule:
     interval: monthly
@@ -19,4 +19,4 @@ updates:
   - ci
   - dependencies
   allow:
-  - dependency-name: "sionna"
+  - dependency-name: sionna-rt

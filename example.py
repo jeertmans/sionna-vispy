@@ -4,14 +4,16 @@
 # ]
 # ///
 # Inspired from:
-# https://nvlabs.github.io/sionna/examples/Sionna_Ray_Tracing_RIS.html
+# https://nvlabs.github.io/sionna/rt/api/paths_solvers.html
 #
 # type: ignore
 
+import mitsuba as mi
 import sionna
 from sionna.rt import (
-    RIS,
+    PathSolver,
     PlanarArray,
+    RadioMapSolver,
     Receiver,
     Transmitter,
     load_scene,
@@ -19,46 +21,58 @@ from sionna.rt import (
 
 import sionna_vispy
 
-scene = load_scene(sionna.rt.scene.simple_street_canyon)
-scene.frequency = 3e9
-scene.tx_array = PlanarArray(1, 1, 0.5, 0.5, "iso", "V")
-scene.rx_array = PlanarArray(1, 1, 0.5, 0.5, "iso", "V")
+# Load example scene
+scene = load_scene(sionna.rt.scene.munich)
 
-tx = Transmitter("tx", position=[-32, 10, 32], look_at=[0, 0, 0])
+# Configure antenna array for all transmitters
+scene.tx_array = PlanarArray(
+    num_rows=8,
+    num_cols=2,
+    vertical_spacing=0.7,
+    horizontal_spacing=0.5,
+    pattern="tr38901",
+    polarization="VH",
+)
+
+# Configure antenna array for all receivers
+scene.rx_array = PlanarArray(
+    num_rows=1,
+    num_cols=1,
+    vertical_spacing=0.5,
+    horizontal_spacing=0.5,
+    pattern="dipole",
+    polarization="cross",
+)
+
+# Create transmitter
+tx = Transmitter(
+    name="tx", position=mi.Point3f(8.5, 21, 27), orientation=mi.Point3f(0, 0, 0)
+)
 scene.add(tx)
 
-rx = Receiver("rx", position=[22, 52, 1.7])
+# Create a receiver
+rx = Receiver(
+    name="rx", position=mi.Point3f(45, 90, 1.5), orientation=mi.Point3f(0, 0, 0)
+)
 scene.add(rx)
 
-ris = RIS(
-    name="ris",
-    position=[32, -9, 32],
-    num_rows=100,
-    num_cols=100,
-    num_modes=1,
-    look_at=(tx.position + rx.position) / 2,
-)
-scene.add(ris)
+# TX points towards RX
+tx.look_at(rx)
 
-ris.phase_gradient_reflector(tx.position, rx.position)
-
-cm = scene.coverage_map(
-    num_samples=2e6,
-    max_depth=5,
-    los=True,
-    reflection=True,
-    diffraction=True,
-    ris=True,
-    cm_cell_size=[4, 4],
-    cm_orientation=[0, 0, 0],
-    cm_center=[0, 0, 1.5],
-    cm_size=[200, 200],
-)
-
-paths = scene.compute_paths(max_depth=5, diffraction=True)
+# Compute paths
+path_solver = PathSolver()
+paths = path_solver(scene)
+rm_solver = RadioMapSolver()
+radio_map = rm_solver(scene, cell_size=(1.0, 1.0), samples_per_tx=100000000)
 
 with sionna_vispy.patch():
-    canvas = scene.preview(paths=paths, coverage_map=cm)
+    canvas = scene.preview(
+        paths=paths,
+        radio_map=radio_map,
+        resolution=[1000, 600],
+        clip_at=15.0,
+        rm_vmin=-100.0,
+    )
 
 canvas.camera.elevation = 45
 canvas.camera.azimuth = 175
