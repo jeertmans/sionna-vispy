@@ -1,7 +1,9 @@
 # /// script
 # dependencies = [
+#   "sionna-rt==1.0.0",
 #   "sionna-vispy[recommended]",
 # ]
+# requires-python = ">=3.10,<3.13"
 # ///
 # Inspired from:
 # https://nvlabs.github.io/sionna/rt/api/paths_solvers.html

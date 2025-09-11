@@ -113,6 +113,8 @@ class Previewer(SceneCanvas):
         """
         Automatically place the camera and observable range.
         """
+        # TODO: find how to match the behavior of pythreejs by setting appropriate
+        # camera parameters.
         self._camera.set_range()
 
     def plot_radio_devices(self, show_orientations=False):  # noqa: C901
@@ -336,12 +338,118 @@ class Previewer(SceneCanvas):
             np.vstack(starts), np.vstack(ends), np.vstack(colors), line_width
         )
 
+    def plot_planar_radio_map(
+        self,
+        radio_map,
+        tx=0,
+        db_scale=True,
+        vmin=None,
+        vmax=None,
+        metric="path_gain",
+    ):
+        """
+        Plot the coverage map as a textured rectangle in the scene. Regions
+        where the coverage map is zero-valued are made transparent.
+        """
+        to_world = radio_map.to_world
+
+        tensor = radio_map.transmitter_radio_map(metric, tx)
+        tensor = tensor.numpy()
+
+        # Mask for discarding empty cells
+        non_zero_mask = tensor > 0.0
+
+        if not np.any(non_zero_mask):
+            return
+
+        # Create a rectangle from two triangles
+        p00 = to_world.transform_affine([-1, -1, 0]).numpy().T[0]
+        p01 = to_world.transform_affine([1, -1, 0]).numpy().T[0]
+        p10 = to_world.transform_affine([-1, 1, 0]).numpy().T[0]
+        p11 = to_world.transform_affine([1, 1, 0]).numpy().T[0]
+
+        vertices = np.array([p00, p01, p10, p11])
+        pmin = np.min(vertices, axis=0)
+        pmax = np.max(vertices, axis=0)
+
+        to_map, normalizer, color_map = self._coverage_map_color_mapping(
+            tensor, db_scale=db_scale, vmin=vmin, vmax=vmax
+        )
+        texture = color_map(normalizer(to_map)).astype(np.float32)
+        texture[:, :, 3] = non_zero_mask.astype(np.float32)
+        # Pre-multiply alpha
+        texture[:, :, :3] *= texture[:, :, 3, None]
+
+        n, m = texture.shape[:2]
+
+        xscale = abs(pmax[0] - pmin[0]) / m
+        yscale = abs(pmax[1] - pmin[1]) / n
+        xshift = pmin[0]
+        yshift = pmin[1]
+        zshift = (pmin[2] + pmax[2]) / 2
+
+        transform = STTransform(
+            scale=(xscale, yscale),
+            translate=(xshift, yshift, zshift),
+        )
+
+        image = Image(data=(255.0 * texture).astype(np.uint8))
+        image.transform = transform
+
+        self._add_child(image, pmin, pmax, persist=False)
+
+    def plot_mesh_radio_map(
+        self, radio_map, tx=0, db_scale=True, vmin=None, vmax=None, metric="path_gain"
+    ):
+        """
+        Plots the mesh radio map
+        """
+        s = radio_map.measurement_surface
+
+        # Radio map
+        tensor = radio_map.transmitter_radio_map(metric, tx)
+        tensor = tensor.numpy()
+
+        # Mask for discarding empty cells
+        non_zero_mask = tensor > 0.0
+        if not np.any(non_zero_mask):
+            return
+
+        # Mesh geometry
+        n_vertices = s.vertex_count()
+        vertices = s.vertex_position(dr.arange(mi.UInt32, n_vertices))  # type: ignore[reportArgumentType]
+        vertices = np.transpose(vertices.numpy())
+
+        faces = s.face_indices(dr.arange(mi.UInt32, s.face_count()))  # type: ignore[reportArgumentType]
+        faces = np.transpose(faces.numpy())
+        faces = faces[non_zero_mask]
+        vertices = vertices[faces]
+        vertices = np.reshape(vertices, (-1, 3))
+
+        pmin = np.min(vertices, axis=0)
+        pmax = np.max(vertices, axis=0)
+
+        # Mesh color from the radio map
+        to_map, normalizer, color_map = self._coverage_map_color_mapping(
+            tensor, db_scale=db_scale, vmin=vmin, vmax=vmax
+        )
+        colors = color_map(normalizer(to_map)).astype(np.float32)
+        colors = colors[:, :3]
+        colors = colors[non_zero_mask]
+        colors = np.repeat(colors, 3, axis=0)
+
+        mesh = Mesh(
+            vertices=vertices, faces=faces, vertex_colors=colors, shading="flat"
+        )
+        mesh.shading_filter.ambiant_light = (1, 1, 1, 0.8)  # type: ignore
+        self._add_child(mesh, pmin, pmax, persist=False)
+
     def plot_scene(self):
         """
         Plots the meshes that make the scene.
         """
-        shapes = self._sionna_scene.mi_scene.shapes()
-        n = len(shapes)
+        objects = self._sionna_scene.objects.values()
+        n = len(objects)
         if n <= 0:
             return
 
@@ -351,7 +459,8 @@ class Previewer(SceneCanvas):
         # Shapes (e.g. buildings)
         vertices, faces, albedos = [], [], []
         f_offset = 0
-        for s in shapes:
+        for s in objects:
+            s = s.mi_mesh
             null_transmission = s.bsdf().eval_null_transmission(si).numpy()
             if np.min(null_transmission) > 0.99:
                 # The BSDF for this shape was probably set to `null`, do not
@@ -380,60 +489,6 @@ class Previewer(SceneCanvas):
             persist=True,  # The scene geometry is persistent
             colors=np.concatenate(albedos, axis=0),
         )
-
-    def plot_radio_map(
-        self,
-        radio_map,
-        tx=0,
-        db_scale=True,
-        vmin=None,
-        vmax=None,
-        metric="path_gain",
-    ):
-        """
-        Plot the coverage map as a textured rectangle in the scene. Regions
-        where the coverage map is zero-valued are made transparent.
-        """
-        to_world = radio_map.to_world
-
-        tensor = radio_map.transmitter_radio_map(metric, tx)
-        tensor = tensor.numpy()
-
-        # Create a rectangle from two triangles
-        p00 = to_world.transform_affine([-1, -1, 0]).numpy().T[0]
-        p01 = to_world.transform_affine([1, -1, 0]).numpy().T[0]
-        p10 = to_world.transform_affine([-1, 1, 0]).numpy().T[0]
-        p11 = to_world.transform_affine([1, 1, 0]).numpy().T[0]
-
-        vertices = np.array([p00, p01, p10, p11])
-        pmin = np.min(vertices, axis=0)
-        pmax = np.max(vertices, axis=0)
-
-        to_map, normalizer, color_map = self._coverage_map_color_mapping(
-            tensor, db_scale=db_scale, vmin=vmin, vmax=vmax
-        )
-        texture = color_map(normalizer(to_map)).astype(np.float32)
-        texture[:, :, 3] = (tensor > 0.0).astype(np.float32)
-        # Pre-multiply alpha
-        texture[:, :, :3] *= texture[:, :, 3, None]
-
-        n, m = texture.shape[:2]
-
-        xscale = abs(pmax[0] - pmin[0]) / m
-        yscale = abs(pmax[1] - pmin[1]) / n
-        xshift = pmin[0]
-        yshift = pmin[1]
-        zshift = (pmin[2] + pmax[2]) / 2
-
-        transform = STTransform(
-            scale=(xscale, yscale),
-            translate=(xshift, yshift, zshift),
-        )
-
-        image = Image(data=(255.0 * texture).astype(np.uint8))
-        image.transform = transform
-
-        self._add_child(image, pmin, pmax, persist=False)
 
     def set_clipping_plane(self, offset, orientation):
         """
