@@ -129,5 +129,5 @@ def test_preview(scene: Scene, paths: Paths, radio_map: RadioMap) -> None:
     with sionna_vispy.patch(), pytest.warns(
         match="The legend is not yet implemented in VisPy"
     ):
-        canvas = scene.preview(paths=paths, radio_map=radio_map, show_orientations=True)
+        canvas = scene.preview(paths=paths, radio_map=radio_map, show_orientations=True)  # type: ignore[reportArgumentType]
         assert isinstance(canvas, SceneCanvas)
