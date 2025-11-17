@@ -125,9 +125,20 @@ def radio_map(
     )
 
 
-def test_preview(scene: Scene, paths: Paths, radio_map: RadioMap) -> None:
-    with sionna_vispy.patch(), pytest.warns(
-        match="The legend is not yet implemented in VisPy"
+def test_get_canvas(scene: Scene) -> None:
+    if scene._preview_widget is not None:
+        scene._preview_widget = None
+    with pytest.raises(
+        AttributeError, match="The scene does not have a preview widget"
     ):
-        canvas = scene.preview(paths=paths, radio_map=radio_map, show_orientations=True)  # type: ignore[reportArgumentType]
+        sionna_vispy.get_canvas(scene)
+
+
+def test_preview(scene: Scene, paths: Paths, radio_map: RadioMap) -> None:
+    with (
+        sionna_vispy.patch(),
+        pytest.warns(match="Point picking is not yet implemented in VisPy"),
+    ):
+        scene.preview(paths=paths, radio_map=radio_map, show_orientations=True)  # type: ignore[reportArgumentType]
+        canvas = sionna_vispy.get_canvas(scene)
         assert isinstance(canvas, SceneCanvas)

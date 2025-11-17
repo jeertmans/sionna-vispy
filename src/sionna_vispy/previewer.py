@@ -10,11 +10,13 @@ VisPy as a viewer rather than pythreejs.
 """
 
 import warnings
+import weakref
 
 import drjit as dr
 import matplotlib as mpl
 import mitsuba as mi
 import numpy as np
+import sionna.rt
 from sionna.rt.constants import (
     INTERACTION_TYPE_TO_COLOR,
     LOS_COLOR,
@@ -38,28 +40,42 @@ class Previewer(SceneCanvas):
 
     Input
     -----
+    scene: :class:`sionna.rt.Scene`
+        scene: :class:`sionna.rt.Scene`.
+
     resolution : [2], int
         Size of the viewer figure.
+        Defaults to (655,500).
 
     fov : float
         Field of view, in degrees.
+        Defaults to 45 degrees.
 
     background : str
         Background color in hex format prefixed by '#'.
+        Defaults to '#87CEEB'.
     """
 
-    def __init__(self, scene, resolution, fov, background) -> None:
+    def __init__(
+        self, scene, resolution=(655, 500), fov=45, background="white"
+    ) -> None:
         super().__init__(keys="interactive", size=resolution, bgcolor=background)
 
         self.unfreeze()  # allow creating attributes
 
         self._resolution = resolution
-        self._sionna_scene = scene  # self._scene is already defined by VisPy
+        self._sionna_scene = weakref.ref(
+            scene
+        )  # self._scene is already defined by VisPy
 
         # List of objects in the scene
         self._objects = []
         # Bounding box of the scene
         self._bbox = mi.ScalarBoundingBox3f()  # type: ignore[reportAttributeAccessIssue]
+        # Properties of the clipping plane. We keep them as scene attributes
+        # so that clipping can be easy toggled on & off with a widget.
+        self._clipping_plane_offset: float | None = None
+        self._clipping_plane_orientation: tuple[float, float, float] = (0, 0, -1)
 
         ####################################################
         # Setup the viewer
@@ -73,6 +89,8 @@ class Previewer(SceneCanvas):
         self._clipper = PlanesClipper()
 
         self.freeze()
+
+        # TODO: setup the legend
 
         ####################################################
         # Plot the scene geometry
@@ -93,6 +111,14 @@ class Previewer(SceneCanvas):
             else:
                 obj.parent = None
         self._objects = remaining
+
+    def display(self):
+        """Display the previewer and its companion widgets in a Jupyter
+        notebook or outside."""
+        # With VisPy, the canvas (previewer) is automatically displayed in Jupyter Notebooks
+        # As of Sionna-RT 1.2, scene.preview() not longer returns the previewer,
+        # so we create a get_canvas() function to retrieve it.
+        return None
 
     def redraw_scene_geometry(self):
         """
@@ -130,8 +156,8 @@ class Previewer(SceneCanvas):
             If set to `True`, the orientation of the radio device is shown using
             an arrow. Defaults to `False`.
         """
-        scene = self._sionna_scene
-        sc = scene_scale(scene)
+        scene: sionna.rt.Scene = self._sionna_scene()  # type: ignore[reportAssignmentType]
+        sc = self._scene_scale()
         # If scene is empty, set the scene scale to 1
         if sc == 0.0:
             sc = 1.0
@@ -179,8 +205,6 @@ class Previewer(SceneCanvas):
                 self._plot_points(p[mask], persist=False, colors=albedo[mask], radius=r)
 
         if show_orientations:
-            line_length = 0.05 * sc
-            head_length = 0.05 * line_length
             zeros = np.zeros((3,))
 
             for devices in [scene.transmitters.values(), scene.receivers.values()]:
@@ -188,12 +212,16 @@ class Previewer(SceneCanvas):
                     continue
                 starts, ends, colors = [], [], []
                 for rd in devices:
+                    r = rd.display_radius or default_radius
+                    line_length = 1.5 * r
+                    head_length = 0.25 * r
+
                     # Arrow line
                     starts.append(rd.position.numpy()[:, 0])
                     rot_mat = rotation_matrix(rd.orientation)
                     local_endpoint = mi.Point3f(line_length, 0.0, 0.0)
                     endpoint = rd.position + rot_mat @ local_endpoint
-                    endpoint = endpoint.numpy()[:, 0]
+                    endpoint = endpoint.numpy().squeeze()
                     ends.append(endpoint)
                     colors.append([rd.color[0], rd.color[1], rd.color[2]])
 
@@ -346,6 +374,7 @@ class Previewer(SceneCanvas):
         vmin=None,
         vmax=None,
         metric="path_gain",
+        cmap=None,
     ):
         """
         Plot the coverage map as a textured rectangle in the scene. Regions
@@ -363,17 +392,17 @@ class Previewer(SceneCanvas):
             return
 
         # Create a rectangle from two triangles
-        p00 = to_world.transform_affine([-1, -1, 0]).numpy().T[0]
-        p01 = to_world.transform_affine([1, -1, 0]).numpy().T[0]
-        p10 = to_world.transform_affine([-1, 1, 0]).numpy().T[0]
-        p11 = to_world.transform_affine([1, 1, 0]).numpy().T[0]
+        p00 = (to_world @ [-1, -1, 0]).numpy().T[0]
+        p01 = (to_world @ [1, -1, 0]).numpy().T[0]
+        p10 = (to_world @ [-1, 1, 0]).numpy().T[0]
+        p11 = (to_world @ [1, 1, 0]).numpy().T[0]
 
         vertices = np.array([p00, p01, p10, p11])
         pmin = np.min(vertices, axis=0)
         pmax = np.max(vertices, axis=0)
 
         to_map, normalizer, color_map = self._coverage_map_color_mapping(
-            tensor, db_scale=db_scale, vmin=vmin, vmax=vmax
+            tensor, db_scale=db_scale, vmin=vmin, vmax=vmax, cmap=cmap
         )
         texture = color_map(normalizer(to_map)).astype(np.float32)
         texture[:, :, 3] = non_zero_mask.astype(np.float32)
@@ -399,7 +428,14 @@ class Previewer(SceneCanvas):
         self._add_child(image, pmin, pmax, persist=False)
 
     def plot_mesh_radio_map(
-        self, radio_map, tx=0, db_scale=True, vmin=None, vmax=None, metric="path_gain"
+        self,
+        radio_map,
+        tx=0,
+        db_scale=True,
+        vmin=None,
+        vmax=None,
+        metric="path_gain",
+        cmap=None,
     ):
         """
         Plots the mesh radio map
@@ -431,7 +467,11 @@ class Previewer(SceneCanvas):
 
         # Mesh color from the radio map
         to_map, normalizer, color_map = self._coverage_map_color_mapping(
-            tensor, db_scale=db_scale, vmin=vmin, vmax=vmax
+            tensor,
+            db_scale=db_scale,
+            vmin=vmin,
+            vmax=vmax,
+            cmap=cmap,
         )
         colors = color_map(normalizer(to_map)).astype(np.float32)
         colors = colors[:, :3]
@@ -448,7 +488,7 @@ class Previewer(SceneCanvas):
         """
         Plots the meshes that make the scene.
         """
-        objects = self._sionna_scene.objects.values()
+        objects = self._sionna_scene().objects.values()  # type: ignore[reportOptionalMemberAccess]
         n = len(objects)
         if n <= 0:
             return
@@ -477,7 +517,7 @@ class Previewer(SceneCanvas):
             faces.append(f + f_offset)
             f_offset += n_vertices
 
-            albedo = np.array(s.bsdf().radio_material.color)
+            albedo = np.array(s.bsdf().color)
 
             albedos.append(np.tile(albedo, (n_vertices, 1)))
 
@@ -506,6 +546,9 @@ class Previewer(SceneCanvas):
         orientation : tuple[float, float, float]
             Normal vector of the clipping plane
         """
+        self._clipping_plane_offset = offset
+        self._clipping_plane_orientation = orientation
+
         if offset is None:
             self._clipper.clipping_planes = None
         else:
@@ -514,6 +557,33 @@ class Previewer(SceneCanvas):
                 [[offset * -orientation, orientation]]
             )
 
+    # TODO: implement display clippy plane slider
+    def display_clipping_plane_slider(self):
+        msg = (
+            "The clipping plane slider is not yet implemented in VisPy.\n"
+            "If you want to help us and contribute, please reach out on GitHub!"
+        )
+        warnings.warn(
+            msg,
+            stacklevel=2,
+        )
+
+    # TODO: implement point picker
+    def setup_point_picker(self):
+        """
+        Setup a widget that allows picking a point in the scene with
+        alt + click. The coordinates of the selected points are displayed
+        next to the previewer.
+        """
+        msg = (
+            "Point picking is not yet implemented in VisPy.\n"
+            "If you want to help us and contribute, please reach out on GitHub!"
+        )
+        warnings.warn(
+            msg,
+            stacklevel=2,
+        )
+
     def show_legend(self, show_paths, show_devices):
         r"""
         Display the legend
@@ -521,7 +591,7 @@ class Previewer(SceneCanvas):
         del show_paths
         del show_devices
         warnings.warn(
-            "The legend is not yet implemented in VisPy. \n"
+            "The legend is not yet implemented in VisPy.\n"
             "If you want to help us and contribute, please reach out on GitHub!",
             stacklevel=2,
         )
@@ -547,9 +617,38 @@ class Previewer(SceneCanvas):
     def orbit(self):
         raise AttributeError("VisPy has not orbit controls like PyThreeJS")
 
+    # TODO: implement clipping plane status retrieval
+    def clip_plane_enabled(self) -> bool:
+        msg = (
+            "Clipping plane status retrieval is not yet implemented in VisPy.\n"
+            "If you want to help us and contribute, please reach out on GitHub!"
+        )
+        warnings.warn(
+            msg,
+            stacklevel=2,
+        )
+        return False
+
     ##################################################
     # Internal methods
     ##################################################
+
+    def _scene_scale(self):
+        """
+        Returns the size of the scene, i.e., the diameter of the smallest
+        sphere containing all the scene objects and centered at the center
+        of the scene.
+        If the scene is empty, the scene scale is arbitrarily set to 1.
+
+        Output
+        -------
+        : float
+            Scene size
+        """
+        sc = scene_scale(self._sionna_scene())  # type: ignore[reportArgumentType]
+        if sc == 0.0:
+            sc = 1.0
+        return sc
 
     def _plot_mesh(self, vertices, faces, persist, colors=None):
         """
@@ -662,6 +761,21 @@ class Previewer(SceneCanvas):
         self._bbox.expand(pmin)
         self._bbox.expand(pmax)
 
+    # TODO: implement legend
+    def _add_legend(self, category: str):
+        """
+        Add an entry to the legend.
+        """
+        del category
+        msg = (
+            "The legend is not yet implemented in VisPy.\n"
+            "If you want to help us and contribute, please reach out on GitHub!"
+        )
+        warnings.warn(
+            msg,
+            stacklevel=2,
+        )
+
     def _plot_lines(self, starts, ends, colors, width):
         """
         Plots a set of `n` lines. This is used to plot the paths.
@@ -706,7 +820,12 @@ class Previewer(SceneCanvas):
         self._add_child(line_plot, pmin, pmax, persist=False)
 
     def _coverage_map_color_mapping(
-        self, coverage_map, db_scale=True, vmin=None, vmax=None
+        self,
+        coverage_map,
+        db_scale=True,
+        vmin=None,
+        vmax=None,
+        cmap=None,
     ):
         """
         Prepare a Matplotlib color maps and normalizing helper based on the
@@ -725,5 +844,47 @@ class Previewer(SceneCanvas):
         if vmax is None:
             vmax = coverage_map[valid].max()
         normalizer = mpl.colors.Normalize(vmin=vmin, vmax=vmax)  # type: ignore[reportAttributeAccessIssue]
-        color_map = mpl.colormaps.get_cmap("viridis")
+        if cmap is None:
+            color_map = mpl.colormaps.get_cmap("viridis")
+        elif isinstance(cmap, str):
+            color_map = mpl.colormaps.get_cmap(cmap)
+        else:
+            color_map = cmap
         return coverage_map, normalizer, color_map
+
+
+def rgb_to_html(rgb: tuple[float, float, float]) -> str:
+    """
+    Convert an RGB tuple to an HTML color string.
+    """
+    return f"rgb({int(rgb[0] * 255)}, {int(rgb[1] * 255)}, {int(rgb[2] * 255)})"
+
+
+def ray_plane_intersect(
+    ray: mi.Ray3f, plane_normal: mi.ScalarNormal3f, plane_offset: float
+) -> tuple[bool, float | None, bool | None]:
+    """Ray-plane intersection helper.
+
+    Returns:
+        hit: bool
+            True if the ray intersects the plane, False otherwise
+        t: float | None
+            Intersection distance, or None if no intersection
+        above: bool | None
+            True if the ray approaches the plane from above (according to the
+            given plane normal).
+    """
+    # Plane equation: dot(normal, point) = offset
+    # Ray equation: point = origin + t * direction
+    # Intersection: dot(normal, origin + t * direction) = offset
+    # Solving for t: t = (offset - dot(normal, origin)) / dot(normal, direction)
+    normal_dot_origin = dr.dot(plane_normal, ray.o)
+    normal_dot_direction = dr.dot(plane_normal, ray.d)
+
+    if abs(normal_dot_direction) <= 1e-6:
+        # Ray is parallel to plane, no intersection
+        return False, None, False
+
+    # Intersection
+    t = (-plane_offset - normal_dot_origin) / normal_dot_direction
+    return bool(t >= 0.0), t, bool(normal_dot_direction > 0.0)

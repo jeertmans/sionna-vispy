@@ -68,7 +68,7 @@ rm_solver = RadioMapSolver()
 radio_map = rm_solver(scene, cell_size=(1.0, 1.0), samples_per_tx=100000000)
 
 with sionna_vispy.patch():
-    canvas = scene.preview(
+    scene.preview(
         paths=paths,
         radio_map=radio_map,
         resolution=[1000, 600],
@@ -76,8 +76,11 @@ with sionna_vispy.patch():
         rm_vmin=-100.0,
     )
 
+
+canvas = sionna_vispy.get_canvas(scene)
 canvas.camera.elevation = 45
 canvas.camera.azimuth = 175
 canvas.camera.distance = 300
+
 canvas.show()
 canvas.app.run()
