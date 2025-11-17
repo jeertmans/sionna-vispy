@@ -15,8 +15,19 @@ for our library.
 (unreleased)=
 ## [Unreleased](https://github.com/jeertmans/sionna-vispy/compare/v1.1.0...HEAD)
 
+(unreleased-chore)=
+### Chore
+
+- Added missing `py.typed` file.
+  [#25](https://github.com/jeertmans/sionna-vispy/pull/25)
+
 (v1.1.0)=
 ## [v1.1.0](https://github.com/jeertmans/sionna-vispy/compare/v1.0.0...v1.1.0)
+
+(v1.1.0-chore)=
+### Chore
+
+- Bumped compatibility with Sionna v1.1.0.
 
 (v1.0.0)=
 ## [v1.0.0](https://github.com/jeertmans/sionna-vispy/compare/v0.19.0...v1.0.0)
