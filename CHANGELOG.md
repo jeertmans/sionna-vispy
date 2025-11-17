@@ -13,9 +13,12 @@ for our library.
 <!-- start changelog -->
 
 (unreleased)=
-## [Unreleased](https://github.com/jeertmans/sionna-vispy/compare/v1.1.0...HEAD)
+## [Unreleased](https://github.com/jeertmans/sionna-vispy/compare/v1.2.0...HEAD)
 
-(unreleased-added)=
+(v1.2.0)=
+## [v1.2.0](https://github.com/jeertmans/sionna-vispy/compare/v1.1.0...v1.2.0)
+
+(v1.2.0-added)=
 ### Added
 
 - Added `get_canvas(scene: Scene) -> SceneCanvas` function
@@ -24,7 +27,7 @@ for our library.
   [#26](https://github.com/jeertmans/sionna-vispy/pull/26)
   [#26](https://github.com/jeertmans/sionna-vispy/pull/26)
 
-(unreleased-chore)=
+(v1.2.0-chore)=
 ### Chore
 
 - Added missing `py.typed` file.

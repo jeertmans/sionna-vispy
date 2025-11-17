@@ -1,7 +1,7 @@
 # /// script
 # dependencies = [
-#   "sionna-rt==1.1.0",
-#   "sionna-vispy[recommended]==1.1.0",
+#   "sionna-rt==1.2.0",
+#   "sionna-vispy[recommended]==1.2.0",
 # ]
 # requires-python = ">=3.10,<3.13"
 # ///
