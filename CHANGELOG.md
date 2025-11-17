@@ -15,11 +15,22 @@ for our library.
 (unreleased)=
 ## [Unreleased](https://github.com/jeertmans/sionna-vispy/compare/v1.1.0...HEAD)
 
+(unreleased-added)=
+### Added
+
+- Added `get_canvas(scene: Scene) -> SceneCanvas` function
+  to retrieve the VisPy canvas from a Sionna scene.
+- Added warning for unimplemented point picking and clipping plane slider features.
+  [#26](https://github.com/jeertmans/sionna-vispy/pull/26)
+  [#26](https://github.com/jeertmans/sionna-vispy/pull/26)
+
 (unreleased-chore)=
 ### Chore
 
 - Added missing `py.typed` file.
   [#25](https://github.com/jeertmans/sionna-vispy/pull/25)
+- Bumped compatibility with Sionna v1.2.0.
+  [#26](https://github.com/jeertmans/sionna-vispy/pull/26)
 
 (v1.1.0)=
 ## [v1.1.0](https://github.com/jeertmans/sionna-vispy/compare/v1.0.0...v1.1.0)

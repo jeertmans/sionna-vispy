@@ -71,13 +71,13 @@ with the following:
 
 ```python
 with sionna_vispy.patch():
-    canvas = scene.preview()
+    scene.preview()
 
-canvas
+get_canvas(scene)
 ```
 
 > [!WARNING]
-> `canvas` must be the return variable
+> The `canvas` must be the return variable
 > of the cell, because the `with` context
 > does not return an instance of
 > `Previewer`.
@@ -91,10 +91,10 @@ must be started to open a window:
 
 ```python
 with sionna_vispy.patch():
-    canvas = scene.preview(...)
+    scene.preview(...)
 
-canvas.show()
-canvas.app.run()
+get_canvas(scene).show()
+get_canvas(scene).app.run()
 ```
 
 ## How it works

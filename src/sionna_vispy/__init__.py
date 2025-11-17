@@ -8,6 +8,35 @@ from sionna.rt.scene import Scene
 from .previewer import Previewer
 
 
+def get_canvas(scene: Scene) -> Previewer:
+    """
+    Get the VisPy canvas associated with a Sionna scene.
+
+    Input
+    -----
+    scene : Scene
+        Sionna scene with a VisPy canvas.
+
+    Returns
+    -------
+    previewer : Previewer
+        The VisPy canvas associated with the scene.
+    """
+    previewer = scene._preview_widget
+    if previewer is None:
+        msg = (
+            "The scene does not have a preview widget. Did you call 'scene.preview()'?"
+        )
+        raise AttributeError(msg)
+    if not isinstance(previewer, Previewer):
+        msg = (
+            "The scene's preview widget is not a VisPy previewer. "
+            "Make sure to use 'sionna_vispy.patch()' when creating the preview."
+        )
+        raise ValueError(msg)
+    return previewer
+
+
 @contextmanager
 def patch(*, patch_existing: bool = True) -> Iterator[type[Previewer]]:
     """
@@ -42,5 +71,5 @@ def patch(*, patch_existing: bool = True) -> Iterator[type[Previewer]]:
             yield cls
 
     finally:
-        for scene, previewer in zip(scenes, previewers):
+        for scene, previewer in zip(scenes, previewers, strict=True):
             scene._preview_widget = previewer

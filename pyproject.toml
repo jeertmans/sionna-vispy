@@ -19,8 +19,6 @@ authors = [
 ]
 classifiers = [
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -34,7 +32,7 @@ dependencies = [
   "matplotlib>=3.7.5",
   "mitsuba>=3.6.2",
   "numpy>=1.24.4",
-  "sionna-rt>=1.1.0",
+  "sionna-rt>=1.2.0",
   "vispy>=0.14.2",
 ]
 description = "VisPy scene previewer for Sionna"
@@ -42,7 +40,7 @@ dynamic = ["readme", "version"]
 keywords = ["sionna", "vispy", "raytracing", "preview"]
 license = "MIT"
 name = "sionna-vispy"
-requires-python = ">= 3.8"
+requires-python = ">= 3.10"
 
 [project.optional-dependencies]
 recommended = [
@@ -140,7 +138,7 @@ venvPath = "."
 filterwarnings = [
   "error",
   "ignore:((.|\n)*)Sentinel is not a public part of the traitlets API((.|\n)*):DeprecationWarning",
-  "ignore: Conversion of an array with ndim > 0 to a scalar is deprecated.*:DeprecationWarning",
+  "ignore:Conversion of an array with ndim > 0 to a scalar is deprecated:DeprecationWarning",
 ]
 
 [tool.ruff.format]
